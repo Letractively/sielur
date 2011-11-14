@@ -1,10 +1,10 @@
-unit Main;
+﻿unit Main;
 
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Menus;
+  Dialogs, Menus, ExtCtrls;
 
 type
   TMainForm = class(TForm)
@@ -15,8 +15,11 @@ type
     MenuQuit: TMenuItem;
     N5: TMenuItem;
     MenuAbout: TMenuItem;
+    splMainPnlAndWebBrous: TSplitter;
+    pnlWeb: TPanel;
   private
-    { Private declarations }
+    {
+    Panel1: TPanel; Private declarations }
   public
     { Public declarations }
   end;
