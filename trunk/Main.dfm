@@ -17,21 +17,21 @@ object MainForm: TMainForm
   object MainMenu: TMainMenu
     Left = 744
     Top = 8
-    object N1: TMenuItem
+    object MenuMain: TMenuItem
       Caption = #1043#1083#1072#1074#1085#1086#1077
-      object N3: TMenuItem
+      object MenuLogin: TMenuItem
         Caption = #1042#1093#1086#1076
       end
-      object N4: TMenuItem
+      object MenuQuit: TMenuItem
         Caption = #1042#1099#1093#1086#1076
       end
     end
-    object N2: TMenuItem
+    object MenuPreference: TMenuItem
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
     end
     object N5: TMenuItem
       Caption = #1055#1088#1086' '#1085#1072#1089
-      object N6: TMenuItem
+      object MenuAbout: TMenuItem
         Caption = #1058#1080#1087#1072' '#1093#1077#1083#1087
       end
     end
