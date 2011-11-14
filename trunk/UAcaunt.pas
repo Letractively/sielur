@@ -1,9 +1,9 @@
-unit UAcaunt;
+﻿unit UAcaunt;
 
 interface
 
 Type
-  Acaunt = class
+  TAcaunt = class
   private
   public
     NameServer: String;  //имя сервера, например, http://aburabur.blabla.ru

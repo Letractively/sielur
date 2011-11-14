@@ -20,10 +20,6 @@ object frmLogin: TfrmLogin
     Height = 286
     Align = alClient
     TabOrder = 0
-    ExplicitLeft = 40
-    ExplicitTop = 88
-    ExplicitWidth = 378
-    ExplicitHeight = 169
     object pnlLogin: TPanel
       Left = 5
       Top = 4
@@ -98,6 +94,15 @@ object frmLogin: TfrmLogin
       Height = 83
       Caption = #1055#1088#1086#1082#1089#1080
       TabOrder = 1
+    end
+    object btnOk: TButton
+      Left = 252
+      Top = 248
+      Width = 75
+      Height = 25
+      Caption = #1087#1088#1080#1084#1077#1085#1080#1090#1100
+      TabOrder = 2
+      OnClick = btnOkClick
     end
   end
 end

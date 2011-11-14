@@ -12,6 +12,7 @@ object MainForm: TMainForm
   Font.Style = []
   Menu = MainMenu
   OldCreateOrder = False
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object splMainPnlAndWebBrous: TSplitter
@@ -36,7 +37,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'MainPanel'
     TabOrder = 0
-    ExplicitWidth = 777
   end
   object pnlWeb: TPanel
     Left = 0
@@ -46,10 +46,6 @@ object MainForm: TMainForm
     Align = alClient
     Caption = 'pnlWeb'
     TabOrder = 1
-    ExplicitLeft = 304
-    ExplicitTop = 368
-    ExplicitWidth = 185
-    ExplicitHeight = 41
     object wbMain: TWebBrowser
       Left = 1
       Top = 1
@@ -76,6 +72,7 @@ object MainForm: TMainForm
       Caption = #1043#1083#1072#1074#1085#1086#1077
       object MenuLogin: TMenuItem
         Caption = #1042#1093#1086#1076
+        OnClick = MenuLoginClick
       end
       object MenuQuit: TMenuItem
         Caption = #1042#1099#1093#1086#1076
