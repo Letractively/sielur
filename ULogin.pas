@@ -17,14 +17,16 @@ type
     grpProxy: TGroupBox;
     lblAgent: TLabel;
     cbbAgetn: TComboBox;
+    lblServer: TLabel;
+    edtServer: TEdit;
   private
     { Private declarations }
   public
     { Public declarations }
   end;
 
-var
-  frmLogin: TfrmLogin;
+//var
+//  frmLogin: TfrmLogin;
 
 implementation
 
