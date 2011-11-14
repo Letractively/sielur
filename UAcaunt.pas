@@ -6,15 +6,14 @@ Type
   Acaunt = class
   private
   public
-    NameServer: String;  //имя серваре например http://aburabur.blabla.ru
-    Login: String;       //логин пользователя
-    Password: String;    //пароль пользователя
+    NameServer: String;  //имя серваре например http://aburabur.blabla.ru    
+    Login: String;       //логин пользователя    
+    Password: String;    //пароль пользователя    
     UserAgetn: String;   //Агент подключения, типа Опера Фаирфокс ИЕ итд.
     IsProxy: Boolean;    //использыэться ли проскя
     ProxyName: String;   //айпишник или имя прокси
     ProxyPort: String;   //порт прокси.
 end;
-
 
 implementation
 
