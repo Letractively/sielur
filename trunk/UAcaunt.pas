@@ -6,10 +6,10 @@ Type
   Acaunt = class
   private
   public
-    Nameserver: String;  //имя серваре например http://aburabur.blabla.ru
-    Login: String;       //логин пользователя
-    Password: String;    //пароль пользователя
-end;
+    Nameserver: String;  //РёРјСЏ СЃРµСЂРІРµСЂР° РЅР°РїСЂРёРјРµСЂ http://aburabur.blabla.ru
+    Login: String;       //Р»РѕРіРёРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+    Password: String;    //РїР°СЂРѕР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+  end;
 
 
 implementation
