@@ -14,6 +14,43 @@ object MainForm: TMainForm
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
+  object splMainPnlAndWebBrous: TSplitter
+    Left = 0
+    Top = 153
+    Width = 778
+    Height = 3
+    Cursor = crSizeNS
+    Align = alTop
+    AutoSnap = False
+    Beveled = True
+    Color = clRed
+    ParentColor = False
+    ExplicitTop = 0
+    ExplicitWidth = 756
+  end
+  object MainPanel: TPanel
+    Left = 0
+    Top = 0
+    Width = 778
+    Height = 153
+    Align = alTop
+    Caption = 'MainPanel'
+    TabOrder = 0
+    ExplicitWidth = 777
+  end
+  object pnlWeb: TPanel
+    Left = 0
+    Top = 156
+    Width = 778
+    Height = 600
+    Align = alClient
+    Caption = 'pnlWeb'
+    TabOrder = 1
+    ExplicitLeft = 304
+    ExplicitTop = 368
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+  end
   object MainMenu: TMainMenu
     Left = 744
     Top = 8
