@@ -9,12 +9,12 @@ uses
 type
   TMainForm = class(TForm)
     MainMenu: TMainMenu;
-    N1: TMenuItem;
-    N2: TMenuItem;
-    N3: TMenuItem;
-    N4: TMenuItem;
+    MenuMain: TMenuItem;
+    MenuPreference: TMenuItem;
+    MenuLogin: TMenuItem;
+    MenuQuit: TMenuItem;
     N5: TMenuItem;
-    N6: TMenuItem;
+    MenuAbout: TMenuItem;
   private
     { Private declarations }
   public
