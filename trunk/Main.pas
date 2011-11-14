@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Menus, ExtCtrls;
+  Dialogs, Menus, ExtCtrls, OleCtrls, SHDocVw, ULogin;
 
 type
   TMainForm = class(TForm)
@@ -17,6 +17,9 @@ type
     MenuAbout: TMenuItem;
     splMainPnlAndWebBrous: TSplitter;
     pnlWeb: TPanel;
+    wbMain: TWebBrowser;
+    LoginPreference: TMenuItem;
+    procedure LoginPreferenceClick(Sender: TObject);
   private
     {
     Panel1: TPanel; Private declarations }
@@ -32,5 +35,17 @@ implementation
 {$R *.dfm}
 
 // Примерно так будет совместная работа... ;)
+
+procedure TMainForm.LoginPreferenceClick(Sender: TObject);
+var
+  AfrmLogin: TfrmLogin;
+begin
+  AfrmLogin := TfrmLogin.Create(nil);
+  try
+    AfrmLogin.ShowModal;
+  finally
+    AfrmLogin.Free;
+  end; //try
+end;
 
 end.

@@ -50,6 +50,24 @@ object MainForm: TMainForm
     ExplicitTop = 368
     ExplicitWidth = 185
     ExplicitHeight = 41
+    object wbMain: TWebBrowser
+      Left = 1
+      Top = 1
+      Width = 776
+      Height = 598
+      Align = alClient
+      TabOrder = 0
+      ExplicitLeft = 216
+      ExplicitTop = 216
+      ExplicitWidth = 300
+      ExplicitHeight = 150
+      ControlData = {
+        4C00000034500000CE3D00000000000000000000000000000000000000000000
+        000000004C000000000000000000000001000000E0D057007335CF11AE690800
+        2B2E126208000000000000004C0000000114020000000000C000000000000046
+        8000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000100000000000000000000000000000000000000}
+    end
   end
   object MainMenu: TMainMenu
     Left = 744
@@ -65,6 +83,10 @@ object MainForm: TMainForm
     end
     object MenuPreference: TMenuItem
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
+      object LoginPreference: TMenuItem
+        Caption = #1044#1083#1103' '#1074#1093#1086#1076#1072' '#1074' '#1080#1075#1088#1091
+        OnClick = LoginPreferenceClick
+      end
     end
     object N5: TMenuItem
       Caption = #1055#1088#1086' '#1085#1072#1089

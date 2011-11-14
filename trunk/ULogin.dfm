@@ -28,7 +28,7 @@ object frmLogin: TfrmLogin
       Left = 5
       Top = 4
       Width = 329
-      Height = 108
+      Height = 140
       TabOrder = 0
       object lblLogin: TLabel
         Left = 9
@@ -50,6 +50,13 @@ object frmLogin: TfrmLogin
         Width = 30
         Height = 13
         Caption = #1040#1075#1077#1085#1090
+      end
+      object lblServer: TLabel
+        Left = 9
+        Top = 108
+        Width = 63
+        Height = 13
+        Caption = #1048#1084#1103' '#1089#1077#1088#1074#1077#1088#1072
       end
       object edtLogin: TEdit
         Left = 89
@@ -75,10 +82,18 @@ object frmLogin: TfrmLogin
         TabOrder = 2
         Text = 'cbbAgetn'
       end
+      object edtServer: TEdit
+        Left = 89
+        Top = 100
+        Width = 233
+        Height = 21
+        TabOrder = 3
+        Text = 'http://'
+      end
     end
     object grpProxy: TGroupBox
-      Left = 5
-      Top = 118
+      Left = 0
+      Top = 150
       Width = 329
       Height = 83
       Caption = #1055#1088#1086#1082#1089#1080
