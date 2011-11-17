@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.421,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\Main.dfm=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Main.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.421,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\Main.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Main.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.843,C:\Documents and Settings\Exit\Мои документы\RAD Studio\Projects\Project1.dproj=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\Sielur.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.781,=C:\Documents and Settings\Exit\Мои документы\RAD Studio\Projects\Unit5.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.890,C:\Documents and Settings\Exit\Мои документы\RAD Studio\Projects\Unit5.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\Main.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.890,C:\Documents and Settings\Exit\Мои документы\RAD Studio\Projects\Unit5.dfm=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\Main.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.031,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit5.dfm=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\ULogin.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.609,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Profiling\AQtimeModule1.aqt</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.250,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.500,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\UAcaunt.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.484,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\Sielur.dproj=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Sielur.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.531,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit5.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.015,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit5.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\ULogin.pas</Transaction>
+  </Transactions>
+</BorlandProject>
