@@ -157,7 +157,7 @@ begin
 
   // NodeType = -3 - Village
   //      Add_User    +
-  //      Login       -
+  //      Logi       -
   //      Logout      +
   //      Delete_User -
 
