@@ -1,5 +1,9 @@
 unit Account_data;
 
+// Данные по аку
+//   Все что может сделать бот на аке включено сюда
+//   Начиная от входа в игру  и заканчивая выходом
+
 interface
 uses   Forms
       ,Controls
@@ -26,15 +30,15 @@ type TAccount_Data = class
     fAccounts_TreeView: TRzTreeView;
   public
     constructor Create(AOwner:TComponent);
-    function is_login_page(document: IHTMLDocument2): IHTMLFormElement;
-    function Account_login(LoginForm: IHTMLFormElement): boolean;
+    function is_login_page(document: IHTMLDocument2): IHTMLFormElement;   // Проверка страницы на страницу входа
+    function Account_login(LoginForm: IHTMLFormElement): boolean;         //  Логие
 
-    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode): boolean;
-    procedure prepare_profile(document: IHTMLDocument2);
-    procedure prepare_Vlist(Table_IHTML: IHTMLTable);
-    function get_race_from_Karte(document: IHTMLDocument2): integer;
+    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode): boolean;  // Запуск бота для работі с аком
+    procedure prepare_profile(document: IHTMLDocument2);                  // Обработка профиля
+    procedure prepare_Vlist(Table_IHTML: IHTMLTable);                     // Обработка профиля - Список деревень
+    function get_race_from_Karte(document: IHTMLDocument2): integer;      // Получение расы по карте
 
-    function FindAndClickHref(document: IHTMLDocument2; SubHref:string;TypeSubHref:integer): IHTMLDocument2;
+    function FindAndClickHref(document: IHTMLDocument2; SubHref:string;TypeSubHref:integer): IHTMLDocument2;   // Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
 
     procedure set_AccountNode_StateIndex;
     property WebBrowser: TWebBrowser read fWebBrowser write fWebBrowser;
@@ -60,12 +64,20 @@ type
                         // - Пароль  (NodeType=-2)
   end;
 
-function find_node(Tree: TRzTreeView; Node: TTreeNode; NodeName: String;NodeType: integer): TTreeNode;
+function find_node(Tree: TRzTreeView; Node: TTreeNode; NodeName: String;NodeType: integer): TTreeNode; // Поиск узла
 
 implementation
 
 function find_node(Tree: TRzTreeView; Node: TTreeNode;
   NodeName: String; NodeType: integer): TTreeNode;
+  // Поиск узла
+  //    Если узел не найден то возвращается  nil
+  //    иначе найденный узел
+  //  Tree       -   Дерево  сервера-акки-деревни
+  //  Node       -   Узел (ветка) в котором надо найти требуемы "под-узел" если он не указан то поиск идет начиная с корня дерева
+  //  NodeName   -   Имя узла который надо найти
+  //  NodeType   -   Тип узла который надо найти
+  //
 var
   t: integer;
 begin
@@ -84,7 +96,7 @@ begin
       Node:=Node.GetNextSibling;
     End;
   End  // Поиск идёт в корне
-  Else begin
+  Else begin  // Поиск идёт в ветке
     For t:=0 to Node.Count - 1 Do
     Begin
       IF (Node[t].Text = NodeName) and (PNodeData(Node[t].Data)^.NodeType = NodeType) then
@@ -101,50 +113,67 @@ end;
 { TAccount_Data }
 
 function TAccount_Data.Account_login(LoginForm: IHTMLFormElement): boolean;
+//  Логин
+//     Возвращает  TRUE  -  при успешном логине
+//                 FALSE -  при неудачном
+// LoginForm   -  Страница логина
+//
 var
   ItemNumber: integer;
   field: IHTMLElement;
   input_field: IHTMLInputElement;
   Count_input_field: integer;
 begin
-// Логин
+// Логика работы
+//  Пробежаться по всем полям формы
+//  найти нужные нам поля ('name' и 'password')
+//   заполнить их и нажать на кнопочку Вход
 
   Result:=false;
   Count_input_field:=0;
   if Assigned(LoginForm) then
   begin
     for ItemNumber := 0 to LoginForm.Length - 1 do
-    begin
+    begin  //  бежим по всем элементам формы
       field := LoginForm.Item(ItemNumber,'') as IHTMLElement;
       if Assigned(field) then
       begin
         if field.tagName = 'INPUT' then
-        begin
+        begin  //  поле ввода
           input_field:=field as IHTMLInputElement;
           if input_field.Name = 'name' then
           begin
-            input_field.Value := MyAccount.Login;
+            input_field.Value := MyAccount.Login;    // Внесем сюда имя
             Count_input_field:=Count_input_field+1;
-          end;
+          end; //  'name'
           if input_field.Name = 'password' then
           begin
-            input_field.Value := MyAccount.Password;
+            input_field.Value := MyAccount.Password; // Внесем сюда пароль
             Count_input_field:=Count_input_field+1;
-          end;
+          end;  // 'password'
         end;
-      end;
-    end;
+      end; //  поле ввода
+    end;   //  бежим по всем элементам формы
 
-    if Count_input_field <> 2 then exit;
+    if Count_input_field <> 2 then exit;  //  Если в форме не ДВА поля ввода  то мы где-то что-то прогавили
 
-    fWBContainer.MyFormSubmit(LoginForm);
+    fWBContainer.MyFormSubmit(LoginForm); //   Нажали на кнопочку
 
+    //  Проверим залогинились или нет
+    //     собственно проверка тупая
+    //  если на полученной страницы нет формы логина то всё в порядке
     Result:=(is_login_page(fWBContainer.HostedBrowser.Document as IHTMLDocument2) = nil);
   end;
 
 end;
 
 function TAccount_Data.Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode): boolean;
+//      Запуск работы бота с заданным аком
+//  aAccounts_TreeView   - Дерево сервера-аки-деревни
+//  aAccountNode         - Узел ака в дереве
+//
+//  Собственно говоря логин и парсинг текущего состояния ака
+//
 var
   Server_Name  : string;
   User_Name    : string;
@@ -193,40 +222,36 @@ begin
     MyAccount.Login:=User_Name;
     MyAccount.Password:=Password_Name;
 
-    Result:=True;
-    WBContainer.MyNavigate(MyAccount.Connection_String);
-    SndForm:=is_login_page(WBContainer.HostedBrowser.Document as IHTMLDocument2);
+    WBContainer.MyNavigate(MyAccount.Connection_String);   //   Получение страницы логины
+    SndForm:=is_login_page(WBContainer.HostedBrowser.Document as IHTMLDocument2);  //  вытащим из неё форму логина
     if Assigned(SndForm) then
-    begin
-      if not Account_login(SndForm) then
-      begin // Ошибка при логине
-        Result:=False;
-      end
-      else begin
-        // Логин нормальный!
+    begin  //  форма логина существует
+      Result:=Account_login(SndForm);   //  Попытка логина
+      if Result then
+      begin  // Логин нормальный!
         // Перейдем на страницу профиля!
-//        Document:=get_profile_document(WBContainer.HostedBrowser.Document as IHTMLDocument2);
         Document:=FindAndClickHref(WBContainer.HostedBrowser.Document as IHTMLDocument2,MyAccount.Connection_String+'/spieler.php?',2);
-
         if Document <> nil then
-          prepare_profile(Document);
-        if MyAccount.Race = 0 then
-        begin  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
-          MyAccount.Race:=get_race_from_Karte(Document);
-        end;  // MyAccount.Race = 0
-      end; // not Account_login(SndForm)
+        begin //  Успешный переход на страницу профиля
+          prepare_profile(Document);  // обработка профиля
+          if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_Karte(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
+        end;
+      end;  // Логин нормальный!
     end;   // Assigned(SndForm)
 
     PNodeData(AccountNode.Data)^.Status:=Result;
     if Result then
     begin  // Логин нормальный!
-      set_AccountNode_StateIndex;
+      set_AccountNode_StateIndex;  //  установит индекс картинки для ака будем рисовать в дереве
       PNodeData(AccountNode.Data)^.ID:=MyAccount.UID;
       PNodeData(AccountNode.Data)^.Account_Data:=self;   // !!!!! Внесем себя !!!!!
 
-      // Добавим список деревень
+      // Добавим  в дерево список деревень
       for t := 0 to MyAccount.Derevni_Count-1 do
-      begin
+      begin  //   Пробежимся по всем деревням
+        //  Вообщето может быть не самая удачная идея использовать в качестве идентификатора
+        //  наименование деревни ибо после переименования ейной возможны проблемы
+        //  однако на этапе логина всё нормально ибо тут переименованием и не пахнет
         Tmp_VillName:=MyAccount.Derevni.Items[t].Name+' '+MyAccount.Derevni.Items[t].coord;
         VillNode:=find_node(Accounts_TreeView,AccountNode,Tmp_VillName,-3);
         if not Assigned(VillNode) then
@@ -242,12 +267,13 @@ begin
           VillNode:=Accounts_TreeView.Items.AddChildObject(AccountNode, Tmp_VillName, NodeDataPtr);
         end;
       end;  // for t := 0 to MyAccount.Derevni_Count-1
+
       // Все с визуализацией временно покончили
       // Теперь надо пройтись по всем деревням и зачитать их данные
       // И будем это делать в отдельном цикле, хотя могли бы и в предыдущем
       // однако негоже смешивать две разные вещи!!!!
       for t := 0 to MyAccount.Derevni_Count-1 do
-      begin
+      begin // цикл по деревням
         // Переключимся на нужную деревню
         // Ну а если деревушка одна то то мы всё равно стоим на ней!!!
         if MyAccount.Derevni_Count > 1 then
@@ -266,15 +292,14 @@ begin
             url:=document.url;
             if (copy(url,length(url)-8) = 'dorf1.php') then
             begin
-              MyAccount.Derevni.Items[t].prepare_dorf1(document);
+              MyAccount.Derevni.Items[t].prepare_dorf1(document);  // Обработка  dorf1
               next_dorf:='dorf2.php'
             end
             else begin
               if (copy(url,length(url)-8) = 'dorf2.php') then
               begin
-                MyAccount.Derevni.Items[t].prepare_dorf2(document);
+                MyAccount.Derevni.Items[t].prepare_dorf2(document);  // Обработка  dorf2
                 MyAccount.Derevni.Items[t].SetGidForId40(30+MyAccount.race);  // Это ограда!!!!
-
                 next_dorf:='dorf1.php'
               end
               else begin
@@ -282,10 +307,10 @@ begin
               end;
             end;
             document:=FindAndClickHref(document,MyAccount.Connection_String+'/'+next_dorf,1);
-          end;  // for I
-        end;    // if Assigned(document)
-      end;      // for t
-    end;   // if Result then  Логин нормальный!
+          end; // for I
+        end;  // if Assigned(document)
+      end;   // цикл по деревням
+    end;    // if Result then  Логин нормальный!
 
   end;  // (Server_Name <> '') and (User_Name <> '') and (Password_Name <> '')
 end;
@@ -315,7 +340,9 @@ end;
 
 function TAccount_Data.FindAndClickHref(document: IHTMLDocument2;
   SubHref: string; TypeSubHref: integer): IHTMLDocument2;
-// TypeSubHref
+//   Найти ссилку и кликнуть по ней
+
+// TypeSubHref   - Модификатор поиска
 //     1 - найти полное равенство ссылки с SubHref
 //     2 - ссылка должна начинаться с SubHref
 //     3 - ссылка должна содержать SubHref
@@ -332,7 +359,7 @@ begin
   begin
     All_Links:=document.links;
     for ItemNumber := 0 to All_Links.Length - 1 do
-    begin
+    begin  // цикл по всем ссылкам документа
       href_field := All_Links.item(ItemNumber,'') as IHTMLElement;
       url:=href_field.toString;
       Is_Find:=(TypeSubHref = 1) and (url = SubHref);
@@ -344,16 +371,18 @@ begin
         Is_Find:=(TypeSubHref = 4) and (pos(SubHref,url) = length(url)-length(SubHref)+1);
 
       if Is_Find then
-      begin // Отлично нашли Ьребуемую ссылку
+      begin // Отлично нашли требуемую ссылку
         WBContainer.MyElementClick(href_field);
         Result:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
         exit;
       end;
-    end;
+    end;  // цикл по всем ссылкам документа
   end;
 end;
 
 function TAccount_Data.get_race_from_Karte(document: IHTMLDocument2): integer;
+// Определение расы по карте
+
 var
   ItemNumber: integer;
   href_field: IHTMLElement;
@@ -373,6 +402,9 @@ begin
   // дабы перейти на страницу карты
   if Assigned(document) then
   begin
+{   У нас же есть соответствующая функция и значит надо использовать её
+    просто закоментарил ибо не проверял, после проверки надо удалить
+    закоментаренній код
     All_Links:=document.links;
     for ItemNumber := 0 to All_Links.Length - 1 do
     begin
@@ -385,6 +417,8 @@ begin
         break;
       end;
     end;
+}
+    Karte_document:=FindAndClickHref(document,MyAccount.Connection_String+'/karte.php', 1);
   end;
 
   if Assigned(Karte_document) then
@@ -429,6 +463,8 @@ begin
 end;
 
 function TAccount_Data.is_login_page(document: IHTMLDocument2): IHTMLFormElement;
+//  Если на входе страница логина, то вытаскиваем из неё форму и возвращаем
+//   иначе NIL
 var
   allForms: IHTMLElementCollection;
 begin
@@ -445,6 +481,7 @@ begin
 end;
 
 procedure TAccount_Data.prepare_profile(document: IHTMLDocument2);
+//   Обработка профиля
 var
   ItemNumber: integer;
   field_Element: IHTMLElement;
@@ -563,12 +600,14 @@ begin
         Current_Vill.Karte_Link:=copy(url,pos('?',url)+1);
       end;  // for irow
     end;   // if field_Element.id = 'villages' Это список поселений!!!!
-    if field_Element.id = 'vlist' then
+
+    if field_Element.id = 'vlist' then  //  Это список поселений в правой части страницы
       prepare_Vlist(field_Element as IHTMLTable);
   end;  // for ItemNumber ....
 end;
 
 procedure TAccount_Data.prepare_Vlist(Table_IHTML: IHTMLTable);
+//  Обработка списка поселений в правой части страницы
 var
   irow: integer;
   icol: integer;
