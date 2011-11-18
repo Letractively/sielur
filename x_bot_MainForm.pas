@@ -100,6 +100,7 @@ begin
       if (PNodeData(AccountNode.Data)^.NodeType = -2) and (not PNodeData(AccountNode.Data)^.Status) then
       begin  // Это Account и он не залогинен
         Account_Data:=TAccount_Data.Create(ACF.Browser_RzPanel);
+        ACF.RzPageControl1.ActivePageIndex:=13;
         Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode);
         ACF.Account_data:=Account_Data;
       end;
