@@ -110,6 +110,7 @@ TAccount=class
     fUID: string;
     fRace: integer;                  // 1 - рим  2 - тевтон   3 - галл
     FIdCurrentVill: integer;
+    FIsT4Version: Boolean;
     function get_Derevni_Count: integer;
   protected
 
@@ -124,6 +125,7 @@ TAccount=class
     property UID: string read fUID write fUID;
     property Race: integer read fRace write fRace;
     property IdCurrentVill: integer read FIdCurrentVill write FIdCurrentVill;
+    property IsT4Version: Boolean read FIsT4Version write FIsT4Version;
 end;
 
 Type
