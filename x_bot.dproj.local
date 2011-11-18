@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
-  <Transactions>
-    <Transaction>2011.11.18 21:32:22.437,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas</Transaction>
-    <Transaction>2011.11.18 21:33:00.437,C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\U_Utilites.pas=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas</Transaction>
-    <Transaction>2011.11.18 22:44:50.921,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\PerlRegEx.pas</Transaction>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.437,C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\U_Utilites.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.437,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.921,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\PerlRegEx.pas</Transaction>
   </Transactions>
 </BorlandProject>
