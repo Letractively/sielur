@@ -1,7 +1,7 @@
 {
   This demo application accompanies the article
   "How to customise the TWebBrowser user interface" on
-  http://www.delphidabbler.com/articles?article=18.
+  ://www.delphidabbler.com/articles?article=18.
 
   The demo implements the 2nd phase of the sample application presented in the
   article. It mimics a dialog box that uses the web browser control. The browser
@@ -175,36 +175,26 @@ end;
 
 procedure TWBContainer.MyElementClick(const MyElement: IHTMLElement);
 begin
-
-DocLoaded:=false;
-
-MyElement.click;
-
-while not DocLoaded do
- Application.ProcessMessages;
-
+  DocLoaded:=false;
+  MyElement.click;
+  while not DocLoaded do
+    Application.ProcessMessages;
 end;
 
 procedure TWBContainer.MyFormSubmit(const MyForm: IHTMLFormElement);
 begin
-
-DocLoaded:=false;
-
-MyForm.submit;
-
-while not DocLoaded do
- Application.ProcessMessages;
-
+  DocLoaded:=false;
+  MyForm.submit;
+  while not DocLoaded do
+    Application.ProcessMessages;
 end;
 
 procedure TWBContainer.MyNavigate(const URL: WideString);
 begin
   DocLoaded:=false;
   HostedBrowser.Navigate(URL);
-
   while not DocLoaded do
      Application.ProcessMessages;
-
 end;
 
 function TWBContainer.ShowContextMenu(
