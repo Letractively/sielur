@@ -112,7 +112,7 @@ begin
     end;
   end;
   FLog.Add('выкосить FLog.Add( в procedure TMainForm.Login_Account; и сохранение в файл');
-  FLog.SaveToFile('AdskiyLog.txt');
+  FLog.SaveToFile('C:\AdskiyLog.txt');
 end;
 
 procedure TMainForm.Accounts_TreeViewChange(Sender: TObject; Node: TTreeNode);
