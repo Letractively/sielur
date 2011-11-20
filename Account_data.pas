@@ -531,37 +531,7 @@ procedure TAccount_Data.prepare_profile(document: IHTMLDocument2);
        ss.Free;
      end;
    end;
-  function bild_lvl(s: string): integer;
-  var
-    i: integer;
-    num: string;
-    sw: boolean;
-  begin
-    sw := false;
-    num := '';
-    for i := 1 to length(s) do
-    begin
-      case s[i] of
-        '-', '0'..'9':
-          begin
-            if sw then
-              num := '';
-            num := num + s[i];
-            sw := false;
-          end
-      else
-        sw := (num <> '');
-      end; //case
-    end; //for i
-    if num = '' then
-      bild_lvl := 0
-    else
-    try
-      bild_lvl := StrToInt(num);
-    except
-      bild_lvl := 0
-    end;
-  end;
+
 //   Обработка профиля
 var
   ItemNumber: integer;
@@ -572,6 +542,8 @@ var
   Row_IHTML: IHTMLTableRow;
   Cell_IHTML:IHTMLTableCell;
   Cell_Element: IHTMLElement;
+  All_List: IHTMLElementCollection;
+  List_IHTML: IHTMLListElement;
   sw: Boolean;
 //  Prifile_Line: string;
   V_Name: string;
@@ -714,10 +686,26 @@ begin
           FLog.Add('Линк на деревню ' + copy(url,pos('?',url)+1));
         end;  // for irow
       end;   // if field_Element.id = 'villages' Это список поселений!!!!
-      FLog.Add('newdid БУДЕТ ЗАВТРА , а я спатки.');
-      if field_Element.id = 'vlist' then  //  Это список поселений в правой части страницы
+      FLog.Add('Поределяем newdid по сылкам справа.');
+      if field_Element.id = 'vilagelist' then  //  Это список поселений в правой части страницы
         prepare_Vlist(field_Element as IHTMLTable);
     end;  // for ItemNumber ....
+    FLog.Add('Поопределяем newdid по сылкам справа.');
+    FLog.Add('Для это найдем елеменит LI class=entry и все че в нем лежит');
+    All_List := document.all.tags('LI') as IHTMLElementCollection;
+    FLog.Add('Обход все LI - ов');
+    for ItemNumber := 0 to All_List.Length - 1 do
+    begin
+      field_Element := All_List.item(ItemNumber,'') as IHTMLElement;
+      FLog.Add('Текущая структура ' + field_Element.className);
+      if field_Element.className = 'entry' then
+      begin
+        List_IHTML:= field_Element as IHTMLListElement;
+        FLog.Add('нашли нужный Li клас = ' + field_Element.id);
+        List_IHTML.
+        //field_Element.
+      end;
+    end;
   end
   else //Для не Т4 версии
     begin
