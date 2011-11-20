@@ -22,7 +22,6 @@ object Add_New_User: TAdd_New_User
     Height = 161
     Align = alTop
     TabOrder = 0
-    ExplicitWidth = 426
     object Server_Name: TLabeledEdit
       Left = 88
       Top = 16
@@ -36,8 +35,6 @@ object Add_New_User: TAdd_New_User
       EditLabel.Caption = 'Server'
       EditLabel.ParentShowHint = False
       EditLabel.ShowHint = False
-      EditLabel.Touch.ParentTabletOptions = False
-      EditLabel.Touch.TabletOptions = [toPressAndHold]
       EditLabel.Layout = tlCenter
       LabelPosition = lpLeft
       LabelSpacing = 12
@@ -54,8 +51,6 @@ object Add_New_User: TAdd_New_User
       EditLabel.Width = 58
       EditLabel.Height = 13
       EditLabel.Caption = 'Login_Name'
-      EditLabel.Touch.ParentTabletOptions = False
-      EditLabel.Touch.TabletOptions = [toPressAndHold]
       EditLabel.Layout = tlCenter
       LabelPosition = lpLeft
       LabelSpacing = 10
@@ -70,8 +65,6 @@ object Add_New_User: TAdd_New_User
       EditLabel.Width = 46
       EditLabel.Height = 13
       EditLabel.Caption = 'Password'
-      EditLabel.Touch.ParentTabletOptions = False
-      EditLabel.Touch.TabletOptions = [toPressAndHold]
       EditLabel.Layout = tlCenter
       LabelPosition = lpLeft
       LabelSpacing = 22

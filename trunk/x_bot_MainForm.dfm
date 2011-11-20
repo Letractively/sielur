@@ -104,8 +104,6 @@ object MainForm: TMainForm
           EditLabel.Width = 37
           EditLabel.Height = 13
           EditLabel.Caption = #1057#1077#1088#1074#1077#1088
-          EditLabel.Touch.ParentTabletOptions = False
-          EditLabel.Touch.TabletOptions = [toPressAndHold]
           EditLabel.Layout = tlCenter
           Enabled = False
           LabelPosition = lpLeft
@@ -122,8 +120,6 @@ object MainForm: TMainForm
           EditLabel.Width = 19
           EditLabel.Height = 13
           EditLabel.Caption = #1048#1084#1103
-          EditLabel.Touch.ParentTabletOptions = False
-          EditLabel.Touch.TabletOptions = [toPressAndHold]
           EditLabel.Layout = tlCenter
           LabelPosition = lpLeft
           LabelSpacing = 10
@@ -139,8 +135,6 @@ object MainForm: TMainForm
           EditLabel.Width = 37
           EditLabel.Height = 13
           EditLabel.Caption = #1055#1072#1088#1086#1083#1100
-          EditLabel.Touch.ParentTabletOptions = False
-          EditLabel.Touch.TabletOptions = [toPressAndHold]
           EditLabel.Layout = tlCenter
           LabelPosition = lpLeft
           LabelSpacing = 10
