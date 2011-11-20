@@ -702,7 +702,7 @@ begin
       begin
         List_IHTML:= field_Element as IHTMLListElement;
         FLog.Add('нашли нужный Li клас = ' + field_Element.id);
-        List_IHTML.
+        //List_IHTML.
         //field_Element.
       end;
     end;
