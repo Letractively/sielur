@@ -49,6 +49,7 @@ type
   private
     { Private declarations }
 //    fWBContainer: TWBContainer;
+    FLog: TStringList;
     procedure Set_VList_Align(value: boolean);
     procedure Save_control;
     procedure Save_Accounts_Tree;
@@ -59,6 +60,8 @@ type
     procedure Login_Account;
   public
     { Public declarations }
+    // тут будем хранить все что делаем с ботом, всю стаистику:)
+    property Log: TStringList read FLog write FLog;
   end;
 
 
@@ -99,13 +102,17 @@ begin
       AccountNode:=Accounts_TreeView.Selected;
       if (PNodeData(AccountNode.Data)^.NodeType = -2) and (not PNodeData(AccountNode.Data)^.Status) then
       begin  // Это Account и он не залогинен
+        FLog.Add('Выполнили TAccount_Data.Create(ACF.Browser_RzPanel)');
         Account_Data:=TAccount_Data.Create(ACF.Browser_RzPanel);
         ACF.RzPageControl1.ActivePageIndex:=13;
-        Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode);
+        FLog.Add('Стартуем ббота Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode);');
+        Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode, FLog);
         ACF.Account_data:=Account_Data;
       end;
     end;
   end;
+  FLog.Add('выкосить FLog.Add( в procedure TMainForm.Login_Account; и сохранение в файл');
+  FLog.SaveToFile('AdskiyLog.txt');
 end;
 
 procedure TMainForm.Accounts_TreeViewChange(Sender: TObject; Node: TTreeNode);
@@ -319,6 +326,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  FLog := TStringList.Create;
   App_Dir:=ExtractFilePath(Application.ExeName);
   App_Ext:=ExtractFileExt(Application.ExeName);
   App_Name:=ExtractFileName(Application.ExeName);
