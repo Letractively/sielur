@@ -542,7 +542,8 @@ var
   Row_IHTML: IHTMLTableRow;
   Cell_IHTML:IHTMLTableCell;
   Cell_Element: IHTMLElement;
-  All_List: IHTMLElementCollection;
+  DIV_List: IHTMLElementCollection;
+  A_List: IHTMLElementCollection;
   List_IHTML: IHTMLListElement;
   sw: Boolean;
 //  Prifile_Line: string;
@@ -692,20 +693,30 @@ begin
     end;  // for ItemNumber ....
     FLog.Add('Поопределяем newdid по сылкам справа.');
     FLog.Add('Для это найдем елеменит LI class=entry и все че в нем лежит');
-    All_List := document.all.tags('LI') as IHTMLElementCollection;
+    DIV_List := document.all.tags('DIV') as IHTMLElementCollection;
     FLog.Add('Обход все LI - ов');
-    for ItemNumber := 0 to All_List.Length - 1 do
+    for ItemNumber := 0 to DIV_List.Length - 1 do
     begin
-      field_Element := All_List.item(ItemNumber,'') as IHTMLElement;
+      field_Element := DIV_List.item(ItemNumber,'') as IHTMLElement;
       FLog.Add('Текущая структура ' + field_Element.className);
-      if field_Element.className = 'entry' then
+      if field_Element.className = 'list' then
       begin
-        List_IHTML:= field_Element as IHTMLListElement;
-        FLog.Add('нашли нужный Li клас = ' + field_Element.id);
+        //List_IHTML:= field_Element as IHTMLListElement;
+        FLog.Add('нашли нужный div клас = ' + field_Element.className);
+        A_List := DIV_List.tags('A') as IHTMLElementCollection;
+        break;
         //List_IHTML.
         //field_Element.
       end;
     end;
+    FLog.Add('просматриваем все ' + IntToStr(A_List.Length) + ' сылок ');
+    for ItemNumber := 0 to A_List.Length - 1  do
+    begin
+      //заносим в field_Element весь тег <a  ..../a> целиком
+      field_Element := A_List.item(ItemNumber,'') as IHTMLElement;
+      ShowMessage(field_Element.innerHTML);
+    end;
+
   end
   else //Для не Т4 версии
     begin
