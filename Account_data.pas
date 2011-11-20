@@ -32,12 +32,13 @@ type TAccount_Data = class
     fWebBrowser: TWebBrowser;
     fAccountNode: TTreeNode;
     fAccounts_TreeView: TRzTreeView;
+    FLog: TStringList;
   public
     constructor Create(AOwner:TComponent);
     function is_login_page(document: IHTMLDocument2): IHTMLFormElement;   // Проверка страницы на страницу входа
     function Account_login(LoginForm: IHTMLFormElement): boolean;         //  Логие
 
-    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode): boolean;  // Запуск бота для работі с аком
+    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;  // Запуск бота для работі с аком
     procedure prepare_profile(document: IHTMLDocument2);                  // Обработка профиля
     procedure prepare_Vlist(Table_IHTML: IHTMLTable);                     // Обработка профиля - Список деревень
     function get_race_from_Karte(document: IHTMLDocument2): integer;      // Получение расы по карте
@@ -45,6 +46,7 @@ type TAccount_Data = class
     function FindAndClickHref(document: IHTMLDocument2; SubHref:string;TypeSubHref:integer): IHTMLDocument2;   // Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
 
     procedure set_AccountNode_StateIndex;
+    property Log: TStringList read FLog write FLog;
     property WebBrowser: TWebBrowser read fWebBrowser write fWebBrowser;
     property WBContainer: TWBContainer read fWBContainer write fWBContainer;
     property MyAccount: TAccount read fMyAccount write fMyAccount;
@@ -132,7 +134,7 @@ begin
 //  Пробежаться по всем полям формы
 //  найти нужные нам поля ('name' и 'password')
 //   заполнить их и нажать на кнопочку Вход
-
+  FLog.Add('Логинимся ...');
   Result:=false;
   Count_input_field:=0;
   if Assigned(LoginForm) then
@@ -159,19 +161,27 @@ begin
       end; //  поле ввода
     end;   //  бежим по всем элементам формы
 
-    if Count_input_field <> 2 then exit;  //  Если в форме не ДВА поля ввода  то мы где-то что-то прогавили
-
+    if Count_input_field <> 2 then
+      begin
+        FLog.Add('Нашли больше 2 полей ввода , дето накасячили');
+        exit;  //  Если в форме не ДВА поля ввода  то мы где-то что-то прогавили
+      end;
+    FLog.Add('Нажали на кнопку ...');
     fWBContainer.MyFormSubmit(LoginForm); //   Нажали на кнопочку
 
     //  Проверим залогинились или нет
     //     собственно проверка тупая
     //  если на полученной страницы нет формы логина то всё в порядке
     Result:=(is_login_page(fWBContainer.HostedBrowser.Document as IHTMLDocument2) = nil);
+    if Result then
+      FLog.Add('Залогинились!')
+    else
+      FLog.Add('Логин не удался КОСЯК!!!');
   end;
 
 end;
 
-function TAccount_Data.Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode): boolean;
+function TAccount_Data.Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;
 //      Запуск работы бота с заданным аком
 //  aAccounts_TreeView   - Дерево сервера-аки-деревни
 //  aAccountNode         - Узел ака в дереве
@@ -203,6 +213,7 @@ begin
   //        т.е. Это Account и он не залогинен
   //  -----------------------------------------------
   //THTML := TStrings.Create;
+  FLog := ALog;
   Result:=False;
 
   Server_Name:='';
@@ -226,14 +237,21 @@ begin
     MyAccount.Connection_String:='http://'+Server_Name;
     MyAccount.Login:=User_Name;
     MyAccount.Password:=Password_Name;
-
+    FLog.Add('Пользователь - ' + User_Name);
+    FLog.Add('Переход по ссылке' + MyAccount.Connection_String);
     WBContainer.MyNavigate(MyAccount.Connection_String);   //   Получение страницы логины
     //когда получили страницу логина можно определить версию игры
     if WB_GetHTMLCode(WBContainer, THTML) then
        if AnsiPos('Travian.Game.version = ''4.0''',THTML) <> 0 then
-         MyAccount.IsT4Version := True
+         begin
+           MyAccount.IsT4Version := True;
+           FLog.Add('Версия игры Т4.0')
+         end
        else
-         MyAccount.IsT4Version := False; //или не Т4 или дето накасячил
+         begin
+           MyAccount.IsT4Version := False; //или не Т4 или дето накасячил
+           FLog.Add('Версия игры НЕ Т4.0');
+         end;
     SndForm:=is_login_page(WBContainer.HostedBrowser.Document as IHTMLDocument2);  //  вытащим из неё форму логина
     if Assigned(SndForm) then
     begin  //  форма логина существует
@@ -241,9 +259,11 @@ begin
       if Result then
       begin  // Логин нормальный!
         // Перейдем на страницу профиля!
+        FLog.Add('Переходим на страницу профиля');
         Document:=FindAndClickHref(WBContainer.HostedBrowser.Document as IHTMLDocument2,MyAccount.Connection_String+'/spieler.php?',2);
         if Document <> nil then
         begin //  Успешный переход на страницу профиля
+          FLog.Add('Успешный переход на страницу профиля.');
           prepare_profile(Document);  // обработка профиля
           if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_Karte(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
         end;
@@ -511,6 +531,37 @@ procedure TAccount_Data.prepare_profile(document: IHTMLDocument2);
        ss.Free;
      end;
    end;
+  function bild_lvl(s: string): integer;
+  var
+    i: integer;
+    num: string;
+    sw: boolean;
+  begin
+    sw := false;
+    num := '';
+    for i := 1 to length(s) do
+    begin
+      case s[i] of
+        '-', '0'..'9':
+          begin
+            if sw then
+              num := '';
+            num := num + s[i];
+            sw := false;
+          end
+      else
+        sw := (num <> '');
+      end; //case
+    end; //for i
+    if num = '' then
+      bild_lvl := 0
+    else
+    try
+      bild_lvl := StrToInt(num);
+    except
+      bild_lvl := 0
+    end;
+  end;
 //   Обработка профиля
 var
   ItemNumber: integer;
@@ -540,15 +591,17 @@ var
 begin
   if not Assigned(document) then
     exit;
-
+  FLog.Add('Обработка профиля');
   Is_Capital:=False;
   sw:=false;
 
   if MyAccount.UID = '' then  // Если неопределен то UID вытащим из URL
     MyAccount.UID:=copy(document.url,length(MyAccount.Connection_String+'/spieler.php?uid=')+1);
+  FLog.Add('UID игрока -' + MyAccount.UID);
   //Дальше для Т4 отдельно все обрабатываем
   if MyAccount.IsT4Version then
   begin
+    FLog.Add('Определяем расу ...');
     if MyAccount.Race = 0 then
     begin // Раса неопределена попытаемся её определить
       //  Вытащим расу по классу <img class="nationBig nationBig2"
@@ -561,22 +614,26 @@ begin
         RegEx.Subject := GetHTMLCode(document);
         if Regex.Match then
           case StrToInt(Regex.SubExpressions[1]) of
-            1: MyAccount.Race := 1;
-            2: MyAccount.Race := 2;
-            3: MyAccount.Race := 3;
+            1: begin MyAccount.Race := 1; FLog.Add('Раса РИМ'); end;
+            2: begin MyAccount.Race := 2; FLog.Add('Раса Фашист :)'); end;
+            3: begin MyAccount.Race := 3; FLog.Add('Раса Лягушатник :)'); end;
           end
         else
-          showmessage('Rase Dont бля , короче не пашит ... выходим');
+          begin
+            FLog.Add('Касяк расу не определили !');
+            showmessage('Rase Dont бля , короче не пашит ... выходим');
+          end;
       finally
         Regex.Free;
       end;
     end;  // MyAccount.Race = 0
-
+    FLog.Add('Готовимся обходить все TABLE на странице профиля ');
     All_Tables:=document.all.tags('TABLE') as IHTMLElementCollection;
     for ItemNumber := 0 to All_Tables.Length - 1 do
     begin
       field_Element := All_Tables.item(ItemNumber,'') as IHTMLElement;
-      if field_Element.id = 'profile' then sw:=true;
+      FLog.Add('Текущая структура ' + field_Element.id);
+      if field_Element.id = 'details' then sw:=true;
       if sw and (field_Element.id = '') then
       begin  // Это внутренность профиля
              //  Ранг
@@ -585,6 +642,7 @@ begin
              //  Поселений
              //  Человек
         sw:=false;
+        FLog.Add('Пробегаемся по строкам профиля "Ранг, Нация, Альянс..."');
         Table_IHTML:=field_Element as IHTMLTable;
         for irow := 0 to Table_IHTML.rows.length - 1 do
         begin // Строки таблицы
@@ -597,8 +655,10 @@ begin
             Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
           end;
         end;
+        FLog.Add('В Row_IHTML занесли строки , в Cell_IHTML ячейки таблицы');
+        FLog.Add('в Cell_Element заносим чето такое "IHTMLElement"');
       end;  // Это внутренность профиля
-
+      FLog.Add('Берем таблицу "villages"');
       if field_Element.id = 'villages' then
       begin  // Это список поселений!!!!
              //  Наименование (включая Столица)
@@ -606,14 +666,16 @@ begin
              //  Координаты (x|y)
         Table_IHTML:=field_Element as IHTMLTable;
             // Первые две строки нам не нужны!!!
-        for irow := 2 to Table_IHTML.rows.length - 1 do
+            // Не не токо первая строка не нужна
+        FLog.Add('проходимся по строкам таблицы....');
+        for irow := 1 to Table_IHTML.rows.length - 1 do
         begin // Строки таблицы
           Row_IHTML:=Table_IHTML.rows.item(irow,'') as IHTMLTableRow;
           for icol := 0 to Row_IHTML.cells.length - 1 do
           begin
             Cell_IHTML:=Row_IHTML.cells.item(icol,'') as IHTMLTableCell;
             Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
-
+            FLog.Add('Терь заносим данные о деревнях');
             case icol of
               0: begin
                    V_Name:=Cell_Element.innerText;
@@ -628,19 +690,31 @@ begin
                    end;
 
                  end;
-              1: V_Nas:=Cell_Element.innerText;
-              2: V_Coord:=Cell_Element.innerText;
+              //1: ЭТО ОАЗЫ !!!
+              2: V_Nas:=Cell_Element.innerText;
+              3: V_Coord:=Cell_Element.innerText;
             end;
           end;
           Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
+          FLog.Add('Устанавливеем текущую деревнюю с координатами =' + V_Coord);
           Current_Vill.Name:=V_Name;
-          Current_Vill.Nas:=StrToInt(V_Nas);
+          FLog.Add('Имя = ' + V_Name);
+          Trim(V_Nas);
+          Current_Vill.Nas:=bild_lvl(V_Nas);
+          FLog.Add('Население = ' + V_Nas);
           Current_Vill.Is_Capital:=Is_Capital;
+          if Is_Capital then
+            FLog.Add('Это столица')
+          else
+            FLog.Add('Не столица');
+          Trim(V_Coord);
           Current_Vill.set_coord(V_Coord);
+          //FLog.Add('');
           Current_Vill.Karte_Link:=copy(url,pos('?',url)+1);
+          FLog.Add('Линк на деревню ' + copy(url,pos('?',url)+1));
         end;  // for irow
       end;   // if field_Element.id = 'villages' Это список поселений!!!!
-
+      FLog.Add('newdid БУДЕТ ЗАВТРА , а я спатки.');
       if field_Element.id = 'vlist' then  //  Это список поселений в правой части страницы
         prepare_Vlist(field_Element as IHTMLTable);
     end;  // for ItemNumber ....
