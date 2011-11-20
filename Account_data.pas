@@ -543,7 +543,8 @@ var
   Cell_IHTML:IHTMLTableCell;
   Cell_Element: IHTMLElement;
   DIV_List: IHTMLElementCollection;
-  A_List: IHTMLElementCollection;
+  UL_List: IHTMLElementCollection;
+  LI_List:IHTMLElementCollection;
   List_IHTML: IHTMLListElement;
   sw: Boolean;
 //  Prifile_Line: string;
@@ -703,20 +704,29 @@ begin
       begin
         //List_IHTML:= field_Element as IHTMLListElement;
         FLog.Add('нашли нужный div клас = ' + field_Element.className);
-        A_List := DIV_List.tags('A') as IHTMLElementCollection;
+        //field_Element.parentElement.innerHTML
+        //ShowMessage(field_Element.innerHTML);
+        UL_List := field_Element.children as IHTMLElementCollection;
+        //A_List := DIV_List.item('', ItemNumber)    //field_Element.document all.tags('A') as IHTMLElementCollection;
         break;
         //List_IHTML.
         //field_Element.
       end;
     end;
-    FLog.Add('просматриваем все ' + IntToStr(A_List.Length) + ' сылок ');
-    for ItemNumber := 0 to A_List.Length - 1  do
+    FLog.Add('просматриваем все ' + IntToStr(UL_List.Length) + ' сылок ');
+    for ItemNumber := 0 to UL_List.Length - 1  do
     begin
       //заносим в field_Element весь тег <a  ..../a> целиком
-      field_Element := A_List.item(ItemNumber,'') as IHTMLElement;
+      field_Element := UL_List.item(ItemNumber,'') as IHTMLElement;
+      LI_List := field_Element.children as IHTMLElementCollection;
+      Break;
       ShowMessage(field_Element.innerHTML);
     end;
-
+    for ItemNumber := 0 to LI_List.Length - 1  do
+    begin
+      field_Element := LI_List.item(ItemNumber,'') as IHTMLElement;
+      ShowMessage(field_Element.innerHTML);
+    end;
   end
   else //Для не Т4 версии
     begin
