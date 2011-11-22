@@ -20,7 +20,8 @@ uses   Forms
       ,PerlRegEx
       ,ActiveX
       ,Dialogs
-      ,Windows  ;
+      ,Windows
+      ,Variants  ;
 
 type TAccount_Data = class
 
@@ -198,6 +199,7 @@ var
 
   SndForm: IHTMLFormElement;
   Document: IHTMLDocument2;
+  DocumentTEST: IHTMLDocument2;
   Tmp_VillName:String;
   NodeDataPtr: PNodeData;
   t: integer;
@@ -205,6 +207,8 @@ var
   i: integer;
   next_dorf: string;
   THTML: String;
+  TEST_STRING: TStringlist;
+  TESTV: OleVariant;
 begin
   //  Проверять не будем ибо все-же надо перед вызовом процедуры проверить
   //  1. Assigned(aAccounts_TreeView)
@@ -264,7 +268,18 @@ begin
         if Document <> nil then
         begin //  Успешный переход на страницу профиля
           FLog.Add('Успешный переход на страницу профиля.');
-          prepare_profile(Document);  // обработка профиля
+          //тес, посмотрим исходники странички
+          TEST_STRING := TStringList.Create;
+          WB_GetHTMLCode(WBContainer,THTML);
+          TEST_STRING.Add(THTML);
+          TEST_STRING.SaveToFile('C:\BLA.txt');
+          TESTV := VarArrayCreate([0, 0], varVariant);
+          TESTV[0] := TEST_STRING.Text;
+          DocumentTEST := coHTMLDocument.Create as IHTMLDocument2;;
+          DocumentTEST.Write(PSafeArray(TVarData(TESTV).VArray));
+          showmessage(DOcumentTEst.toString);
+          //DocumentTEST := coHTMLDocument.Create;
+          prepare_profile(DocumentTEST);  // обработка профиля
           if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_Karte(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
         end;
       end;  // Логин нормальный!
