@@ -40,7 +40,7 @@ type TAccount_Data = class
     function Account_login(LoginForm: IHTMLFormElement): boolean;         //  Логие
 
     function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;  // Запуск бота для работі с аком
-    procedure prepare_profile(document: IHTMLDocument2);                  // Обработка профиля
+    procedure prepare_profile(document: IHTMLDocument2; DocumentHTML: IHTMLDocument2);                  // Обработка профиля
     procedure prepare_Vlist(Table_IHTML: IHTMLTable);                     // Обработка профиля - Список деревень
     function get_race_from_Karte(document: IHTMLDocument2): integer;      // Получение расы по карте
 
@@ -199,16 +199,15 @@ var
 
   SndForm: IHTMLFormElement;
   Document: IHTMLDocument2;
-  DocumentTEST: IHTMLDocument2;
+  DocumentHTML: IHTMLDocument2; //нужно для норм отображения title (На Win XP)
   Tmp_VillName:String;
   NodeDataPtr: PNodeData;
   t: integer;
   url: string;
   i: integer;
   next_dorf: string;
-  THTML: String;
-  TEST_STRING: TStringlist;
-  TESTV: OleVariant;
+  HTML: String; //сохраняем сюда исходный код страницы
+  V_HTML: OleVariant; //нуна для запихания  HTML в DocumentHTML
 begin
   //  Проверять не будем ибо все-же надо перед вызовом процедуры проверить
   //  1. Assigned(aAccounts_TreeView)
@@ -245,8 +244,8 @@ begin
     FLog.Add('Переход по ссылке' + MyAccount.Connection_String);
     WBContainer.MyNavigate(MyAccount.Connection_String);   //   Получение страницы логины
     //когда получили страницу логина можно определить версию игры
-    if WB_GetHTMLCode(WBContainer, THTML) then
-       if AnsiPos('Travian.Game.version = ''4.0''',THTML) <> 0 then
+    if WB_GetHTMLCode(WBContainer, HTML) then
+       if AnsiPos('Travian.Game.version = ''4.0''',HTML) <> 0 then
          begin
            MyAccount.IsT4Version := True;
            FLog.Add('Версия игры Т4.0')
@@ -268,18 +267,16 @@ begin
         if Document <> nil then
         begin //  Успешный переход на страницу профиля
           FLog.Add('Успешный переход на страницу профиля.');
-          //тес, посмотрим исходники странички
-          TEST_STRING := TStringList.Create;
-          WB_GetHTMLCode(WBContainer,THTML);
-          TEST_STRING.Add(THTML);
-          TEST_STRING.SaveToFile('C:\BLA.txt');
-          TESTV := VarArrayCreate([0, 0], varVariant);
-          TESTV[0] := TEST_STRING.Text;
-          DocumentTEST := coHTMLDocument.Create as IHTMLDocument2;;
-          DocumentTEST.Write(PSafeArray(TVarData(TESTV).VArray));
-          showmessage(DOcumentTEst.toString);
-          //DocumentTEST := coHTMLDocument.Create;
-          prepare_profile(DocumentTEST);  // обработка профиля
+          //Данное извращение надо для получениу екземпляра IHTMLDocument2
+          //потом в него пихаем исходный код страницы и при дальнейшей работе
+          //у нас вполне нормально title получаеться
+          WBContainer.HostedBrowser.
+          WB_GetHTMLCode(WBContainer,HTML);
+          V_HTML := VarArrayCreate([0, 0], varVariant);
+          V_HTML[0] := HTML;
+          DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
+          DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
+          prepare_profile(Document, DocumentHTML);  // обработка профиля
           if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_Karte(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
         end;
       end;  // Логин нормальный!
@@ -526,7 +523,7 @@ begin
   end;
 end;
 
-procedure TAccount_Data.prepare_profile(document: IHTMLDocument2);
+procedure TAccount_Data.prepare_profile(document: IHTMLDocument2; DocumentHTML: IHTMLDocument2);
 
   function GetHTMLCode(Adocument: IHTMLDocument2): String;
    var
@@ -569,14 +566,13 @@ var
   Current_Vill:TVill;
   Is_Capital:Boolean;
   Tmp_String: String;
-
   Tmp_ClassName:String;
-
   Tmp_Element: IHTMLElement;
-
   url:string;
-
   Regex : TPerlRegEx;
+  V_NewDid: String; //храним NewDid текущей  расматриваемой строчки тега А
+  t1, t2: Integer; //для  NewDid
+  Newdid_Current_Vill: TVill; //текущая деревня в которую впихиваем NewDid
 begin
   if not Assigned(document) then
     exit;
@@ -709,7 +705,8 @@ begin
     end;  // for ItemNumber ....
     FLog.Add('Поопределяем newdid по сылкам справа.');
     FLog.Add('Для это найдем елеменит LI class=entry и все че в нем лежит');
-    DIV_List := document.all.tags('DIV') as IHTMLElementCollection;
+    //здесь и берем нами созданый DocumentHTML с исходным кодом
+    DIV_List := DocumentHTML.all.tags('DIV') as IHTMLElementCollection;
     FLog.Add('Обход все LI - ов');
     for ItemNumber := 0 to DIV_List.Length - 1 do
     begin
@@ -717,15 +714,9 @@ begin
       FLog.Add('Текущая структура ' + field_Element.className);
       if field_Element.className = 'list' then
       begin
-        //List_IHTML:= field_Element as IHTMLListElement;
         FLog.Add('нашли нужный div клас = ' + field_Element.className);
-        //field_Element.parentElement.innerHTML
-        //ShowMessage(field_Element.innerHTML);
         UL_List := field_Element.children as IHTMLElementCollection;
-        //A_List := DIV_List.item('', ItemNumber)    //field_Element.document all.tags('A') as IHTMLElementCollection;
         break;
-        //List_IHTML.
-        //field_Element.
       end;
     end;
     FLog.Add('просматриваем все ' + IntToStr(UL_List.Length) + ' сылок ');
@@ -739,8 +730,39 @@ begin
     end;
     for ItemNumber := 0 to LI_List.Length - 1  do
     begin
+      //получили <a ...хреф с newdid каждой деревни
       field_Element := LI_List.item(ItemNumber,'') as IHTMLElement;
       ShowMessage(field_Element.innerHTML);
+      Flog.Add('Берем хтмл код тега А (смотри ниже):');
+      FLog.Add(field_Element.innerHTML);
+      FLog.SaveToFile('C:\ALLLLLLLL.txt');
+      {Tmp_String:=field_Element.innerHTML;
+      t1:=pos('newdid=',Tmp_String);
+      t2:=pos('&',Tmp_String);
+      if (t1 > 0) and (t2 > t1+7) then
+        V_NewDid:=copy(Tmp_String,t1+7,t2-(t1+7));
+      V_Coord: field_Element.innerHTML; // а сюда как бе из регулярки координаты вытаскиваем.
+      }
+      Regex := TPerlRegEx.Create(nil);
+      try
+        RegEx.RegEx := '<a\n*.*href="(\?newdid=.*)"\n*.*\n*.*coordinateX.*\((-*\d+).*coordinateY.*;.*;(-*\d*)\).*"\n*.*>(.+)</a>';
+        RegEx.Subject := field_Element.innerHTML;
+        if Regex.Match then
+          begin
+            V_NewDid := Regex.SubExpressions[1];
+            V_Coord := '(' + Regex.SubExpressions[2] + '|' + Regex.SubExpressions[3] + ')';
+            Newdid_Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
+            Newdid_Current_Vill.NewDID:=V_NewDid;
+            Newdid_Current_Vill.set_coord(V_Coord);
+          end
+        else
+          begin
+            FLog.Add('Касяк !');
+            showmessage('Rase Dont бля , короче не пашит ... выходим');
+          end;
+      finally
+        Regex.Free;
+      end;
     end;
   end
   else //Для не Т4 версии
