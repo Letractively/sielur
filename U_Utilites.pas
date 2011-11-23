@@ -3,7 +3,7 @@ unit U_Utilites;
 interface
 
 uses
-  Windows, ActiveX, ShDocVw,MSHTML, Classes, UContainer, SysUtils;
+  Windows, ActiveX, ShDocVw,MSHTML, Classes, UContainer, SysUtils, Dialogs;
 
   function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: String): Boolean;
   function bild_lvl(s: string): integer;
@@ -23,7 +23,7 @@ implementation
    try
      sa := TStreamAdapter.Create(ss, soReference) as IStream;
      Result := Succeeded(ps.Save(sa, True));
-     if Result then ACode := ss.Datastring;
+     if Result then ACode := Utf8ToAnsi(ss.Datastring);
    finally
      ss.Free;
    end;

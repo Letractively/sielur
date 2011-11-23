@@ -270,7 +270,6 @@ begin
           //Данное извращение надо для получениу екземпляра IHTMLDocument2
           //потом в него пихаем исходный код страницы и при дальнейшей работе
           //у нас вполне нормально title получаеться
-          WBContainer.HostedBrowser.
           WB_GetHTMLCode(WBContainer,HTML);
           V_HTML := VarArrayCreate([0, 0], varVariant);
           V_HTML[0] := HTML;
@@ -538,7 +537,7 @@ procedure TAccount_Data.prepare_profile(document: IHTMLDocument2; DocumentHTML: 
      try
        sa := TStreamAdapter.Create(ss, soReference) as IStream;
        Succeeded(ps.Save(sa, True));
-       Result := ss.Datastring;
+       Result := Utf8ToAnsi(ss.Datastring);
      finally
        ss.Free;
      end;
@@ -570,9 +569,8 @@ var
   Tmp_Element: IHTMLElement;
   url:string;
   Regex : TPerlRegEx;
-  V_NewDid: String; //храним NewDid текущей  расматриваемой строчки тега А
-  t1, t2: Integer; //для  NewDid
   Newdid_Current_Vill: TVill; //текущая деревня в которую впихиваем NewDid
+  V_NewDid: String; //храним NewDid текущей  расматриваемой строчки тега А
 begin
   if not Assigned(document) then
     exit;
@@ -677,7 +675,7 @@ begin
                  end;
               //1: ЭТО ОАЗЫ !!!
               2: V_Nas:=Cell_Element.innerText;
-              3: V_Coord:=Cell_Element.innerText;
+              3: V_Coord:= Copy(Cell_Element.innerText, 0, Pos(')', Cell_Element.innerText));
             end;
           end;
           Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
@@ -694,7 +692,6 @@ begin
             FLog.Add('Не столица');
           Trim(V_Coord);
           Current_Vill.set_coord(V_Coord);
-          //FLog.Add('');
           Current_Vill.Karte_Link:=copy(url,pos('?',url)+1);
           FLog.Add('Линк на деревню ' + copy(url,pos('?',url)+1));
         end;  // for irow
@@ -726,31 +723,24 @@ begin
       field_Element := UL_List.item(ItemNumber,'') as IHTMLElement;
       LI_List := field_Element.children as IHTMLElementCollection;
       Break;
-      ShowMessage(field_Element.innerHTML);
     end;
     for ItemNumber := 0 to LI_List.Length - 1  do
     begin
       //получили <a ...хреф с newdid каждой деревни
       field_Element := LI_List.item(ItemNumber,'') as IHTMLElement;
-      ShowMessage(field_Element.innerHTML);
       Flog.Add('Берем хтмл код тега А (смотри ниже):');
       FLog.Add(field_Element.innerHTML);
-      FLog.SaveToFile('C:\ALLLLLLLL.txt');
-      {Tmp_String:=field_Element.innerHTML;
-      t1:=pos('newdid=',Tmp_String);
-      t2:=pos('&',Tmp_String);
-      if (t1 > 0) and (t2 > t1+7) then
-        V_NewDid:=copy(Tmp_String,t1+7,t2-(t1+7));
-      V_Coord: field_Element.innerHTML; // а сюда как бе из регулярки координаты вытаскиваем.
-      }
       Regex := TPerlRegEx.Create(nil);
       try
-        RegEx.RegEx := '<a\n*.*href="(\?newdid=.*)"\n*.*\n*.*coordinateX.*\((-*\d+).*coordinateY.*;.*;(-*\d*)\).*"\n*.*>(.+)</a>';
+        RegEx.RegEx := '<A.*coordinateX.*\((-*\d+).*coordinateY">(-*\d*)\).*href="\?newdid=(\d*).*';
         RegEx.Subject := field_Element.innerHTML;
         if Regex.Match then
           begin
-            V_NewDid := Regex.SubExpressions[1];
-            V_Coord := '(' + Regex.SubExpressions[2] + '|' + Regex.SubExpressions[3] + ')';
+            Flog.Add('Нашли по регулярки инфу по деревне');
+            Flog.Add('newdid=' + Regex.SubExpressions[3]);
+            Flog.Add('Координаты =' + V_Coord);
+            V_NewDid := Regex.SubExpressions[3];
+            V_Coord := '(' + Regex.SubExpressions[1] + '|' + Regex.SubExpressions[2] + ')';
             Newdid_Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
             Newdid_Current_Vill.NewDID:=V_NewDid;
             Newdid_Current_Vill.set_coord(V_Coord);
