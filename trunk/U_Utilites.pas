@@ -5,37 +5,40 @@ interface
 uses
   Windows, ActiveX, ShDocVw,MSHTML, Classes, UContainer, SysUtils, Dialogs;
 
+  //получает исходный код странички из Веб контейнера
   function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: String): Boolean;
+  //Получает исходный код странички из екземпляра IHTMLDocument2
+  function Doc_GetHTMLCode(Adocument: IHTMLDocument2): String;
   function bild_lvl(s: string): integer;
 implementation
 
-  //функция  получает Текст странички из Веббраузера
-  function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: String): Boolean;
-  var
-   ps: IPersistStreamInit;
-   ss: TStringStream;
-   sa: IStream;
-   s: string;
-  begin
-   ps := WBContainer.HostedBrowser.Document as IPersistStreamInit;
-   s := '';
-   ss := TStringStream.Create(s);
-   try
-     sa := TStreamAdapter.Create(ss, soReference) as IStream;
-     Result := Succeeded(ps.Save(sa, True));
-     if Result then ACode := Utf8ToAnsi(ss.Datastring);
-   finally
-     ss.Free;
-   end;
+//функция  получает Текст странички из Веббраузера
+function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: String): Boolean;
+var
+  ps: IPersistStreamInit;
+  ss: TStringStream;
+  sa: IStream;
+  s: string;
+begin
+  ps := WBContainer.HostedBrowser.Document as IPersistStreamInit;
+  s := '';
+  ss := TStringStream.Create(s);
+  try
+   sa := TStreamAdapter.Create(ss, soReference) as IStream;
+   Result := Succeeded(ps.Save(sa, True));
+   if Result then ACode := Utf8ToAnsi(ss.Datastring);
+  finally
+   ss.Free;
   end;
+end;
 
-  //функция переводит карявую строку в число со знаком.
-  function bild_lvl(s: string): integer;
-  var
+//функция переводит карявую строку в число со знаком.
+function bild_lvl(s: string): integer;
+var
   i: integer;
   num: string;
   sw: boolean;
-  begin
+begin
   sw := false;
   num := '';
   for i := 1 to length(s) do
@@ -60,5 +63,24 @@ implementation
   except
     bild_lvl := 0
   end;
+end;
+
+function Doc_GetHTMLCode(Adocument: IHTMLDocument2): String;
+var
+  ps: IPersistStreamInit;
+  ss: TStringStream;
+  sa: IStream;
+  s: string;
+begin
+  ps := Adocument as IPersistStreamInit;
+  s := '';
+  ss := TStringStream.Create(s);
+  try
+   sa := TStreamAdapter.Create(ss, soReference) as IStream;
+   Succeeded(ps.Save(sa, True));
+   Result := Utf8ToAnsi(ss.Datastring);
+  finally
+   ss.Free;
   end;
+end;
 end.

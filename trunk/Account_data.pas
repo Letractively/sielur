@@ -21,7 +21,8 @@ uses   Forms
       ,ActiveX
       ,Dialogs
       ,Windows
-      ,Variants  ;
+      ,Variants
+      ,UPrePare_Profile ;
 
 type TAccount_Data = class
 
@@ -36,13 +37,12 @@ type TAccount_Data = class
     FLog: TStringList;
   public
     constructor Create(AOwner:TComponent);
+    //Логин для Т4 и Т3.6 версии одинаков
     function is_login_page(document: IHTMLDocument2): IHTMLFormElement;   // Проверка страницы на страницу входа
     function Account_login(LoginForm: IHTMLFormElement): boolean;         //  Логие
-
-    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;  // Запуск бота для работі с аком
-    procedure prepare_profile(document: IHTMLDocument2; DocumentHTML: IHTMLDocument2);                  // Обработка профиля
-    procedure prepare_Vlist(Table_IHTML: IHTMLTable);                     // Обработка профиля - Список деревень
-    function get_race_from_Karte(document: IHTMLDocument2): integer;      // Получение расы по карте
+    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;  // Запуск бота для работі с аком Т3,6
+    //Для работы с профилем все переехало в unit UPrePare_Profile;
+    function get_race_from_KarteT36(document: IHTMLDocument2): integer;      // Получение расы по карте
 
     function FindAndClickHref(document: IHTMLDocument2; SubHref:string;TypeSubHref:integer): IHTMLDocument2;   // Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
 
@@ -193,10 +193,8 @@ var
   Server_Name  : string;
   User_Name    : string;
   Password_Name: string;
-
   ServerNode: TTreeNode;
   VillNode: TTreeNode;
-
   SndForm: IHTMLFormElement;
   Document: IHTMLDocument2;
   DocumentHTML: IHTMLDocument2; //нужно для норм отображения title (На Win XP)
@@ -270,13 +268,21 @@ begin
           //Данное извращение надо для получениу екземпляра IHTMLDocument2
           //потом в него пихаем исходный код страницы и при дальнейшей работе
           //у нас вполне нормально title получаеться
-          WB_GetHTMLCode(WBContainer,HTML);
-          V_HTML := VarArrayCreate([0, 0], varVariant);
-          V_HTML[0] := HTML;
-          DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
-          DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
-          prepare_profile(Document, DocumentHTML);  // обработка профиля
-          if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_Karte(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
+          if MyAccount.IsT4Version then //если Т 4.0 версия то надо
+          //дополнительно создать екземпляр документа и тд ... выше описано
+          begin
+            WB_GetHTMLCode(WBContainer,HTML);
+            V_HTML := VarArrayCreate([0, 0], varVariant);
+            V_HTML[0] := HTML;
+            DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
+            DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
+            prepare_profileT4(Document, DocumentHTML, MyAccount, Flog);  // обработка профиля
+          end
+          else
+            begin
+              prepare_profileT36(Document, MyAccount, FLog);  // обработка профиля
+              if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_KarteT36(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
+            end;
         end;
       end;  // Логин нормальный!
     end;   // Assigned(SndForm)
@@ -319,7 +325,7 @@ begin
         // Переключимся на нужную деревню
         // Ну а если деревушка одна то то мы всё равно стоим на ней!!!
         if MyAccount.Derevni_Count > 1 then
-          document:=FindAndClickHref(document,'?newdid='+MyAccount.Derevni.Items[t].NewDID,4);
+          document:=FindAndClickHref(document,'?newdid='+MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID,4);
         if Assigned(document) then
         begin  // Успешное переключение!
            MyAccount.IdCurrentVill:=MyAccount.Derevni.Items[t].ID;
@@ -334,7 +340,11 @@ begin
             url:=document.url;
             if (copy(url,length(url)-8) = 'dorf1.php') then
             begin
-              MyAccount.Derevni.Items[t].prepare_dorf1(document);  // Обработка  dorf1
+              // Для Т4 Версии другая логика получения данных ферм .
+              if MyAccount.IsT4Version then
+                 MyAccount.Derevni.Items[t].prepare_dorf1T4(document)
+              else
+                MyAccount.Derevni.Items[t].prepare_dorf1(document);  // Обработка  dorf1
               next_dorf:='dorf2.php'
             end
             else begin
@@ -411,7 +421,6 @@ begin
         Is_Find:=(TypeSubHref = 3) and (pos(SubHref,url) > 0);
       if not Is_Find then
         Is_Find:=(TypeSubHref = 4) and (pos(SubHref,url) = length(url)-length(SubHref)+1);
-
       if Is_Find then
       begin // Отлично нашли требуемую ссылку
         WBContainer.MyElementClick(href_field);
@@ -422,7 +431,7 @@ begin
   end;
 end;
 
-function TAccount_Data.get_race_from_Karte(document: IHTMLDocument2): integer;
+function TAccount_Data.get_race_from_KarteT36(document: IHTMLDocument2): integer;
 // Определение расы по карте
 
 var
@@ -484,7 +493,7 @@ begin
     if Script_Number = 2 then
     begin  // Нужный нам скрипт Из него вытащим расу
            // По простому по рабочекрестьянски
-           // Нам нужен центр карты и мы его получим!
+           // Нам нужен центр карты и мы его получим!  Петр упорный :) яб регулярку юзнул...
       tmp_txt:=field_Element.innerHTML;
       tmp_txt:=copy(tmp_txt,pos(']]',tmp_txt)+3);   // Выбросили первую строку карты
       tmp_txt:=copy(tmp_txt,pos(']]',tmp_txt)+3);   // Выбросили вторую строку карты
@@ -522,384 +531,6 @@ begin
   end;
 end;
 
-procedure TAccount_Data.prepare_profile(document: IHTMLDocument2; DocumentHTML: IHTMLDocument2);
-
-  function GetHTMLCode(Adocument: IHTMLDocument2): String;
-   var
-     ps: IPersistStreamInit;
-     ss: TStringStream;
-     sa: IStream;
-     s: string;
-   begin
-     ps := Adocument as IPersistStreamInit;
-     s := '';
-     ss := TStringStream.Create(s);
-     try
-       sa := TStreamAdapter.Create(ss, soReference) as IStream;
-       Succeeded(ps.Save(sa, True));
-       Result := Utf8ToAnsi(ss.Datastring);
-     finally
-       ss.Free;
-     end;
-   end;
-
-//   Обработка профиля
-var
-  ItemNumber: integer;
-  field_Element: IHTMLElement;
-  Table_IHTML: IHTMLTable;
-  All_Tables: IHTMLElementCollection;
-  irow,icol:integer;
-  Row_IHTML: IHTMLTableRow;
-  Cell_IHTML:IHTMLTableCell;
-  Cell_Element: IHTMLElement;
-  DIV_List: IHTMLElementCollection;
-  UL_List: IHTMLElementCollection;
-  LI_List:IHTMLElementCollection;
-  List_IHTML: IHTMLListElement;
-  sw: Boolean;
-//  Prifile_Line: string;
-  V_Name: string;
-  V_Nas: string;
-  V_Coord: string;
-  Current_Vill:TVill;
-  Is_Capital:Boolean;
-  Tmp_String: String;
-  Tmp_ClassName:String;
-  Tmp_Element: IHTMLElement;
-  url:string;
-  Regex : TPerlRegEx;
-  Newdid_Current_Vill: TVill; //текущая деревня в которую впихиваем NewDid
-  V_NewDid: String; //храним NewDid текущей  расматриваемой строчки тега А
-begin
-  if not Assigned(document) then
-    exit;
-  FLog.Add('Обработка профиля');
-  Is_Capital:=False;
-  sw:=false;
-
-  if MyAccount.UID = '' then  // Если неопределен то UID вытащим из URL
-    MyAccount.UID:=copy(document.url,length(MyAccount.Connection_String+'/spieler.php?uid=')+1);
-  FLog.Add('UID игрока -' + MyAccount.UID);
-  //Дальше для Т4 отдельно все обрабатываем
-  if MyAccount.IsT4Version then
-  begin
-    FLog.Add('Определяем расу ...');
-    if MyAccount.Race = 0 then
-    begin // Раса неопределена попытаемся её определить
-      //  Вытащим расу по классу <img class="nationBig nationBig2"
-      //       nationBig1" - римляне
-      //       nationBig2" - тевтонцы
-      //       cnationBig3" - галлы
-      Regex := TPerlRegEx.Create(nil);
-      try
-        RegEx.RegEx := '<img\sclass="nationBig\snationBig(\d)"';
-        RegEx.Subject := GetHTMLCode(document);
-        if Regex.Match then
-          case StrToInt(Regex.SubExpressions[1]) of
-            1: begin MyAccount.Race := 1; FLog.Add('Раса РИМ'); end;
-            2: begin MyAccount.Race := 2; FLog.Add('Раса Фашист :)'); end;
-            3: begin MyAccount.Race := 3; FLog.Add('Раса Лягушатник :)'); end;
-          end
-        else
-          begin
-            FLog.Add('Касяк расу не определили !');
-            showmessage('Rase Dont бля , короче не пашит ... выходим');
-          end;
-      finally
-        Regex.Free;
-      end;
-    end;  // MyAccount.Race = 0
-    FLog.Add('Готовимся обходить все TABLE на странице профиля ');
-    All_Tables:=document.all.tags('TABLE') as IHTMLElementCollection;
-    for ItemNumber := 0 to All_Tables.Length - 1 do
-    begin
-      field_Element := All_Tables.item(ItemNumber,'') as IHTMLElement;
-      FLog.Add('Текущая структура ' + field_Element.id);
-      if field_Element.id = 'details' then sw:=true;
-      if sw and (field_Element.id = '') then
-      begin  // Это внутренность профиля
-             //  Ранг
-             //  Нация
-             //  Альянс
-             //  Поселений
-             //  Человек
-        sw:=false;
-        FLog.Add('Пробегаемся по строкам профиля "Ранг, Нация, Альянс..."');
-        Table_IHTML:=field_Element as IHTMLTable;
-        for irow := 0 to Table_IHTML.rows.length - 1 do
-        begin // Строки таблицы
-            // Нас интересуют первые 5 строк таблицы
-          if irow >= 5 then break;
-          Row_IHTML:=Table_IHTML.rows.item(irow,'') as IHTMLTableRow;
-          for icol := 0 to Row_IHTML.cells.length - 1 do
-          begin
-            Cell_IHTML:=Row_IHTML.cells.item(icol,'') as IHTMLTableCell;
-            Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
-          end;
-        end;
-        FLog.Add('В Row_IHTML занесли строки , в Cell_IHTML ячейки таблицы');
-        FLog.Add('в Cell_Element заносим чето такое "IHTMLElement"');
-      end;  // Это внутренность профиля
-      FLog.Add('Берем таблицу "villages"');
-      if field_Element.id = 'villages' then
-      begin  // Это список поселений!!!!
-             //  Наименование (включая Столица)
-             //  Население
-             //  Координаты (x|y)
-        Table_IHTML:=field_Element as IHTMLTable;
-            // Первые две строки нам не нужны!!!
-            // Не не токо первая строка не нужна
-        FLog.Add('проходимся по строкам таблицы....');
-        for irow := 1 to Table_IHTML.rows.length - 1 do
-        begin // Строки таблицы
-          Row_IHTML:=Table_IHTML.rows.item(irow,'') as IHTMLTableRow;
-          for icol := 0 to Row_IHTML.cells.length - 1 do
-          begin
-            Cell_IHTML:=Row_IHTML.cells.item(icol,'') as IHTMLTableCell;
-            Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
-            FLog.Add('Терь заносим данные о деревнях');
-            case icol of
-              0: begin
-                   V_Name:=Cell_Element.innerText;
-                   Tmp_String:=Cell_Element.innerHTML;
-                   Is_Capital:=(pos('SPAN',Tmp_String) > 1);
-                   url:='';
-                   if (cell_element.children as IHTMLElementCollection).length > 0 then
-                   begin  // ссылка на карту
-                     Tmp_Element:=(cell_element.children as IHTMLElementCollection).Item(0,'') as IHTMLElement;
-                     if Tmp_Element.tagName='A' then
-                       url:=Tmp_Element.toString;
-                   end;
-
-                 end;
-              //1: ЭТО ОАЗЫ !!!
-              2: V_Nas:=Cell_Element.innerText;
-              3: V_Coord:= Copy(Cell_Element.innerText, 0, Pos(')', Cell_Element.innerText));
-            end;
-          end;
-          Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
-          FLog.Add('Устанавливеем текущую деревнюю с координатами =' + V_Coord);
-          Current_Vill.Name:=V_Name;
-          FLog.Add('Имя = ' + V_Name);
-          Trim(V_Nas);
-          Current_Vill.Nas:=bild_lvl(V_Nas);
-          FLog.Add('Население = ' + V_Nas);
-          Current_Vill.Is_Capital:=Is_Capital;
-          if Is_Capital then
-            FLog.Add('Это столица')
-          else
-            FLog.Add('Не столица');
-          Trim(V_Coord);
-          Current_Vill.set_coord(V_Coord);
-          Current_Vill.Karte_Link:=copy(url,pos('?',url)+1);
-          FLog.Add('Линк на деревню ' + copy(url,pos('?',url)+1));
-        end;  // for irow
-      end;   // if field_Element.id = 'villages' Это список поселений!!!!
-      FLog.Add('Поределяем newdid по сылкам справа.');
-      if field_Element.id = 'vilagelist' then  //  Это список поселений в правой части страницы
-        prepare_Vlist(field_Element as IHTMLTable);
-    end;  // for ItemNumber ....
-    FLog.Add('Поопределяем newdid по сылкам справа.');
-    FLog.Add('Для это найдем елеменит LI class=entry и все че в нем лежит');
-    //здесь и берем нами созданый DocumentHTML с исходным кодом
-    DIV_List := DocumentHTML.all.tags('DIV') as IHTMLElementCollection;
-    FLog.Add('Обход все LI - ов');
-    for ItemNumber := 0 to DIV_List.Length - 1 do
-    begin
-      field_Element := DIV_List.item(ItemNumber,'') as IHTMLElement;
-      FLog.Add('Текущая структура ' + field_Element.className);
-      if field_Element.className = 'list' then
-      begin
-        FLog.Add('нашли нужный div клас = ' + field_Element.className);
-        UL_List := field_Element.children as IHTMLElementCollection;
-        break;
-      end;
-    end;
-    FLog.Add('просматриваем все ' + IntToStr(UL_List.Length) + ' сылок ');
-    for ItemNumber := 0 to UL_List.Length - 1  do
-    begin
-      //заносим в field_Element весь тег <a  ..../a> целиком
-      field_Element := UL_List.item(ItemNumber,'') as IHTMLElement;
-      LI_List := field_Element.children as IHTMLElementCollection;
-      Break;
-    end;
-    for ItemNumber := 0 to LI_List.Length - 1  do
-    begin
-      //получили <a ...хреф с newdid каждой деревни
-      field_Element := LI_List.item(ItemNumber,'') as IHTMLElement;
-      Flog.Add('Берем хтмл код тега А (смотри ниже):');
-      FLog.Add(field_Element.innerHTML);
-      Regex := TPerlRegEx.Create(nil);
-      try
-        RegEx.RegEx := '<A.*coordinateX.*\((-*\d+).*coordinateY">(-*\d*)\).*href="\?newdid=(\d*).*';
-        RegEx.Subject := field_Element.innerHTML;
-        if Regex.Match then
-          begin
-            Flog.Add('Нашли по регулярки инфу по деревне');
-            Flog.Add('newdid=' + Regex.SubExpressions[3]);
-            Flog.Add('Координаты =' + V_Coord);
-            V_NewDid := Regex.SubExpressions[3];
-            V_Coord := '(' + Regex.SubExpressions[1] + '|' + Regex.SubExpressions[2] + ')';
-            Newdid_Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
-            Newdid_Current_Vill.NewDID:=V_NewDid;
-            Newdid_Current_Vill.set_coord(V_Coord);
-          end
-        else
-          begin
-            FLog.Add('Касяк !');
-            showmessage('Rase Dont бля , короче не пашит ... выходим');
-          end;
-      finally
-        Regex.Free;
-      end;
-    end;
-  end
-  else //Для не Т4 версии
-    begin
-      if MyAccount.Race = 0 then
-      begin // Раса неопределена попытаемся её определить
-          //  Вытащим расу по классу ID элемента (id="qgei") -
-          //       class="q_l1" - римляне
-          //       class="q_l2" - тевтонцы
-          //       class="q_l3" - галлы
-
-        field_Element:=(document as IHTMLDocument3).getElementById('qgei');
-        if Assigned(field_Element) then
-        begin
-          Tmp_ClassName:=field_Element.className;
-          if pos('l1',Tmp_ClassName) > 0 then MyAccount.Race:=1//римляне
-          else if pos('l2',Tmp_ClassName) > 0 then MyAccount.Race:=2//тевтонцы
-          else if pos('l3',Tmp_ClassName) > 0 then MyAccount.Race:=3;//галлы
-        end;
-      end;  // MyAccount.Race = 0
-
-      All_Tables:=document.all.tags('TABLE') as IHTMLElementCollection;
-      for ItemNumber := 0 to All_Tables.Length - 1 do
-      begin
-        field_Element := All_Tables.item(ItemNumber,'') as IHTMLElement;
-        if field_Element.id = 'profile' then sw:=true;
-        if sw and (field_Element.id = '') then
-        begin  // Это внутренность профиля
-               //  Ранг
-               //  Нация
-               //  Альянс
-               //  Поселений
-               //  Человек
-          sw:=false;
-          Table_IHTML:=field_Element as IHTMLTable;
-          for irow := 0 to Table_IHTML.rows.length - 1 do
-          begin // Строки таблицы
-              // Нас интересуют первые 5 строк таблицы
-            if irow >= 5 then break;
-            Row_IHTML:=Table_IHTML.rows.item(irow,'') as IHTMLTableRow;
-            for icol := 0 to Row_IHTML.cells.length - 1 do
-            begin
-              Cell_IHTML:=Row_IHTML.cells.item(icol,'') as IHTMLTableCell;
-              Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
-            end;
-          end;
-        end;  // Это внутренность профиля
-
-        if field_Element.id = 'villages' then
-        begin  // Это список поселений!!!!
-               //  Наименование (включая Столица)
-               //  Население
-               //  Координаты (x|y)
-          Table_IHTML:=field_Element as IHTMLTable;
-              // Первые две строки нам не нужны!!!
-          for irow := 2 to Table_IHTML.rows.length - 1 do
-          begin // Строки таблицы
-            Row_IHTML:=Table_IHTML.rows.item(irow,'') as IHTMLTableRow;
-            for icol := 0 to Row_IHTML.cells.length - 1 do
-            begin
-              Cell_IHTML:=Row_IHTML.cells.item(icol,'') as IHTMLTableCell;
-              Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
-
-              case icol of
-                0: begin
-                     V_Name:=Cell_Element.innerText;
-                     Tmp_String:=Cell_Element.innerHTML;
-                     Is_Capital:=(pos('SPAN',Tmp_String) > 1);
-                     url:='';
-                     if (cell_element.children as IHTMLElementCollection).length > 0 then
-                     begin  // ссылка на карту
-                       Tmp_Element:=(cell_element.children as IHTMLElementCollection).Item(0,'') as IHTMLElement;
-                       if Tmp_Element.tagName='A' then
-                         url:=Tmp_Element.toString;
-                     end;
-
-                   end;
-                1: V_Nas:=Cell_Element.innerText;
-                2: V_Coord:=Cell_Element.innerText;
-              end;
-            end;
-            Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
-            Current_Vill.Name:=V_Name;
-            Current_Vill.Nas:=StrToInt(V_Nas);
-            Current_Vill.Is_Capital:=Is_Capital;
-            Current_Vill.set_coord(V_Coord);
-            Current_Vill.Karte_Link:=copy(url,pos('?',url)+1);
-          end;  // for irow
-        end;   // if field_Element.id = 'villages' Это список поселений!!!!
-
-        if field_Element.id = 'vlist' then  //  Это список поселений в правой части страницы
-          prepare_Vlist(field_Element as IHTMLTable);
-      end;  // for ItemNumber ....
-    end;
-end;
-
-procedure TAccount_Data.prepare_Vlist(Table_IHTML: IHTMLTable);
-//  Обработка списка поселений в правой части страницы
-var
-  irow: integer;
-  icol: integer;
-  Row_IHTML: IHTMLTableRow;
-  Cell_IHTML:IHTMLTableCell;
-  Cell_Element: IHTMLElement;
-  Current_Vill:TVill;
-
-  V_Name: string;
-  V_NewDid: string;
-  V_Coord: string;
-  Tmp_String:string;
-  t1,t2:integer;
-begin
-  // Это список поселений!!!!
-  //  Наименование
-  //  Координаты (x|y)
-  //  NewDid   -- Собственно из-за которого мы сюда и забрались!
-
-  if not Assigned(Table_IHTML) then
-    exit;
-
-  // Первая строка нам не нужна!!!
-  for irow := 1 to Table_IHTML.rows.length - 1 do
-  begin // Строки таблицы
-    Row_IHTML:=Table_IHTML.rows.item(irow,'') as IHTMLTableRow;
-    //  Первая колонка нас не интересует!!!
-    for icol := 1 to Row_IHTML.cells.length - 1 do
-    begin
-      Cell_IHTML:=Row_IHTML.cells.item(icol,'') as IHTMLTableCell;
-      Cell_Element:=Row_IHTML.cells.item(icol,'') as IHTMLElement;
-      case icol of
-        1: begin
-             V_Name:=Cell_Element.innerText;
-             Tmp_String:=Cell_Element.innerHTML;
-             t1:=pos('newdid=',Tmp_String);
-             t2:=pos('&',Tmp_String);
-             if (t1 > 0) and (t2 > t1+7) then
-               V_NewDid:=copy(Tmp_String,t1+7,t2-(t1+7));
-           end;
-        2: V_Coord:=Cell_Element.innerText;
-      end;
-    end;  // for icol
-    Current_Vill:=MyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
-    Current_Vill.Name:=V_Name;
-    Current_Vill.NewDID:=V_NewDid;
-    Current_Vill.set_coord(V_Coord);
-  end;  // for irow
-end;
 
 procedure TAccount_Data.set_AccountNode_StateIndex;
 begin

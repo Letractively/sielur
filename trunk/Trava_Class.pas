@@ -58,6 +58,8 @@ TVill = class(TCollectionItem)
     function set_coord(const coord: string):Boolean;
     procedure prepare_dorf1(Document: IHTMLDocument2);
     procedure prepare_dorf2(Document: IHTMLDocument2);
+    //T4 Version
+    procedure prepare_dorf1T4(Document: IHTMLDocument2);
     procedure SetGidForId40(AValue: integer);
 //    function get_coord: string;
     property Name: string read fName write fName;
@@ -219,6 +221,54 @@ begin
 //   (<div id="village_map" class="f7">)
 //  его класс укажет нам на тип клетки
   field_Element:=(document as IHTMLDocument3).getElementById('village_map');
+  TypeField:=StrToInt(copy(field_Element.className,2));
+  // gid полей
+  for ItemBuild := 1 to 18 do
+  begin
+    Building[ItemBuild].id:=ItemBuild;
+    Building[ItemBuild].gid:=Res_for_fields[TypeField,ItemBuild];
+  end;
+
+// Ну а теперь пройдемся по содержимому field_Element
+// и вытащим информацию о полях
+  Tmp_Collection:=(field_Element.children as ihtmlelementcollection);
+  for ItemNumber := 0 to Tmp_Collection.Length - 2 do
+  begin
+    field_Element:=Tmp_Collection.item(ItemNumber,'')  as IHTMLElement;
+    Attr_Collection:=(field_Element as IHTMLDOMNode).attributes as IHTMLAttributeCollection;
+    TmpStringBuild:=field_Element.className; // Ну там что-то вот такое "reslevel rf1 level10"
+    TmpStringBuild:=copy(TmpStringBuild,12); // Удалили "reslevel rf"
+     // Теперь до пробела это номер поля  и после lelel - это уровень постройки
+    ItemBuild:=StrToInt(copy(TmpStringBuild,1,pos(' ',TmpStringBuild)-1));
+    Building[ItemBuild].lvl:=StrToInt(copy(TmpStringBuild,pos('level',TmpStringBuild)+5));
+    for ItemAttrNumber := 0 to Attr_Collection.Length - 1 do
+    begin
+      Attr_Element:=Attr_Collection.item(ItemAttrNumber) as IHTMLDOMAttribute;
+      if Attr_Element.specified then
+        if Attr_Element.nodeName = 'alt' then
+          Building[ItemBuild].name:=Attr_Element.nodeValue;
+    end;
+  end;
+end;
+
+procedure TVill.prepare_dorf1T4(Document: IHTMLDocument2);
+var
+  field_Element: IHTMLElement;
+  Tmp_Collection:IHTMLElementCollection;
+  Attr_Collection:IHTMLAttributeCollection;
+  Attr_Element:IHTMLDOMAttribute;
+
+  ItemNumber: integer;
+  ItemAttrNumber: integer;
+  ItemBuild: integer;
+  TmpStringBuild: string;
+begin
+//  Вот тут и будем вытягивать инфу о фермах !
+//  <map name="rx" id="rx">
+//  <area href="build.php?id=1" coords="190,88,28" shape="circle" alt="Лесопилка Уровень 10">
+//  тип клетки тут по айдишнику определяетьс я... тут возмем уровень тип и название
+//  его класс укажет нам на тип клетки
+  field_Element:=(document as IHTMLDocument3).getElementById('rx');
   TypeField:=StrToInt(copy(field_Element.className,2));
   // gid полей
   for ItemBuild := 1 to 18 do
