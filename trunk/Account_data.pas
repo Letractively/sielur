@@ -22,7 +22,7 @@ uses   Forms
       ,Dialogs
       ,Windows
       ,Variants
-      ,UPrePare_Profile ;
+      , TypInfo ;
 
 type TAccount_Data = class
 
@@ -41,10 +41,7 @@ type TAccount_Data = class
     function is_login_page(document: IHTMLDocument2): IHTMLFormElement;   // Проверка страницы на страницу входа
     function Account_login(LoginForm: IHTMLFormElement): boolean;         //  Логие
     function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;  // Запуск бота для работі с аком Т3,6
-    //Для работы с профилем все переехало в unit UPrePare_Profile;
-    function get_race_from_KarteT36(document: IHTMLDocument2): integer;      // Получение расы по карте
-
-    function FindAndClickHref(document: IHTMLDocument2; SubHref:string;TypeSubHref:integer): IHTMLDocument2;   // Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
+    procedure Clone_Document(DocumentHTML: IHTMLDocument2);
 
     procedure set_AccountNode_StateIndex;
     property Log: TStringList read FLog write FLog;
@@ -205,7 +202,6 @@ var
   i: integer;
   next_dorf: string;
   HTML: String; //сохраняем сюда исходный код страницы
-  V_HTML: OleVariant; //нуна для запихания  HTML в DocumentHTML
 begin
   //  Проверять не будем ибо все-же надо перед вызовом процедуры проверить
   //  1. Assigned(aAccounts_TreeView)
@@ -214,6 +210,9 @@ begin
   //        т.е. Это Account и он не залогинен
   //  -----------------------------------------------
   //THTML := TStrings.Create;
+
+  DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
+
   FLog := ALog;
   Result:=False;
 
@@ -242,17 +241,19 @@ begin
     FLog.Add('Переход по ссылке' + MyAccount.Connection_String);
     WBContainer.MyNavigate(MyAccount.Connection_String);   //   Получение страницы логины
     //когда получили страницу логина можно определить версию игры
+    MyAccount.TravianVersion := tvNone;
     if WB_GetHTMLCode(WBContainer, HTML) then
-       if AnsiPos('Travian.Game.version = ''4.0''',HTML) <> 0 then
-         begin
-           MyAccount.IsT4Version := True;
-           FLog.Add('Версия игры Т4.0')
-         end
-       else
-         begin
-           MyAccount.IsT4Version := False; //или не Т4 или дето накасячил
-           FLog.Add('Версия игры НЕ Т4.0');
-         end;
+    begin
+      if AnsiPos('Travian.Game.version = ''4.0''',HTML) <> 0 then MyAccount.TravianVersion := tv40
+      else if AnsiPos('class="v35',HTML) <> 0 then MyAccount.TravianVersion := tv36;
+    end;
+    FLog.Add('Версия игры '+GetEnumName(TypeInfo(TTravianVersion),Ord(MyAccount.TravianVersion)));
+    if MyAccount.TravianVersion = tvNone then
+    begin
+      FLog.Add('Это не трава, или данная версия игры не поддерживается');
+      exit;
+    end;
+
     SndForm:=is_login_page(WBContainer.HostedBrowser.Document as IHTMLDocument2);  //  вытащим из неё форму логина
     if Assigned(SndForm) then
     begin  //  форма логина существует
@@ -261,28 +262,23 @@ begin
       begin  // Логин нормальный!
         // Перейдем на страницу профиля!
         FLog.Add('Переходим на страницу профиля');
-        Document:=FindAndClickHref(WBContainer.HostedBrowser.Document as IHTMLDocument2,MyAccount.Connection_String+'/spieler.php?',2);
+        Document:=FindAndClickHref(WBContainer,WBContainer.HostedBrowser.Document as IHTMLDocument2,MyAccount.Connection_String+'/spieler.php?',2);
         if Document <> nil then
         begin //  Успешный переход на страницу профиля
           FLog.Add('Успешный переход на страницу профиля.');
           //Данное извращение надо для получениу екземпляра IHTMLDocument2
           //потом в него пихаем исходный код страницы и при дальнейшей работе
           //у нас вполне нормально title получаеться
-          if MyAccount.IsT4Version then //если Т 4.0 версия то надо
           //дополнительно создать екземпляр документа и тд ... выше описано
-          begin
-            WB_GetHTMLCode(WBContainer,HTML);
-            V_HTML := VarArrayCreate([0, 0], varVariant);
-            V_HTML[0] := HTML;
-            DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
-            DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
-            prepare_profileT4(Document, DocumentHTML, MyAccount, Flog);  // обработка профиля
-          end
-          else
-            begin
-              prepare_profileT36(Document, MyAccount, FLog);  // обработка профиля
-              if MyAccount.Race = 0 then  MyAccount.Race:=get_race_from_KarteT36(Document);  // Расу в профиле определить не смогли! Будем её определять как-то иначе!
-            end;
+{          WB_GetHTMLCode(WBContainer,HTML);
+          V_HTML := VarArrayCreate([0, 0], varVariant);
+          V_HTML[0] := HTML;
+          DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
+          DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
+}
+          Clone_Document(DocumentHTML);
+          MyAccount.prepare_profile(WBContainer,Document, DocumentHTML,Flog);  // обработка профиля
+
         end;
       end;  // Логин нормальный!
     end;   // Assigned(SndForm)
@@ -325,7 +321,7 @@ begin
         // Переключимся на нужную деревню
         // Ну а если деревушка одна то то мы всё равно стоим на ней!!!
         if MyAccount.Derevni_Count > 1 then
-          document:=FindAndClickHref(document,'?newdid='+MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID,4);
+          document:=FindAndClickHref(WBContainer,document,'?newdid='+MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID,4);
         if Assigned(document) then
         begin  // Успешное переключение!
            MyAccount.IdCurrentVill:=MyAccount.Derevni.Items[t].ID;
@@ -333,24 +329,21 @@ begin
           // Если не на dorf1 или 2 то переключаемся на dorf1
           url:=document.url;
           if (copy(url,length(url)-4) <> 'dorf1') and (copy(url,length(url)-4) <> 'dorf2') then // Переключимся на dorf1
-            document:=FindAndClickHref(document,MyAccount.Connection_String+'/dorf1.php',1);
+            document:=FindAndClickHref(WBContainer,document,MyAccount.Connection_String+'/dorf1.php',1);
 
+          Clone_Document(DocumentHTML);
           for I := 1 to 2 do
           begin
             url:=document.url;
             if (copy(url,length(url)-8) = 'dorf1.php') then
             begin
-              // Для Т4 Версии другая логика получения данных ферм .
-              if MyAccount.IsT4Version then
-                 MyAccount.Derevni.Items[t].prepare_dorf1T4(document)
-              else
-                MyAccount.Derevni.Items[t].prepare_dorf1(document);  // Обработка  dorf1
-              next_dorf:='dorf2.php'
+              MyAccount.Derevni.Items[t].prepare_dorf1(document,DocumentHTML,FLog);
+              next_dorf:='dorf2.php';
             end
             else begin
               if (copy(url,length(url)-8) = 'dorf2.php') then
               begin
-                MyAccount.Derevni.Items[t].prepare_dorf2(document);  // Обработка  dorf2
+                MyAccount.Derevni.Items[t].prepare_dorf2(document,DocumentHTML,FLog);  // Обработка  dorf2
                 MyAccount.Derevni.Items[t].SetGidForId40(30+MyAccount.race);  // Это ограда!!!!
                 next_dorf:='dorf1.php'
               end
@@ -358,13 +351,25 @@ begin
                 // логическая ошибка
               end;
             end;
-            document:=FindAndClickHref(document,MyAccount.Connection_String+'/'+next_dorf,1);
+            document:=FindAndClickHref(WBContainer,document,MyAccount.Connection_String+'/'+next_dorf,1);
           end; // for I
         end;  // if Assigned(document)
       end;   // цикл по деревням
     end;    // if Result then  Логин нормальный!
 
   end;  // (Server_Name <> '') and (User_Name <> '') and (Password_Name <> '')
+end;
+
+procedure TAccount_Data.Clone_Document(DocumentHTML: IHTMLDocument2);
+var
+  HTML: String; //сохраняем сюда исходный код страницы
+  V_HTML: OleVariant; //нуна для запихания  HTML в DocumentHTML
+begin
+  DocumentHTML.clear;
+  WB_GetHTMLCode(WBContainer,HTML);
+  V_HTML := VarArrayCreate([0, 0], varVariant);
+  V_HTML[0] := HTML;
+  DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
 end;
 
 constructor TAccount_Data.Create(AOwner:TComponent);
@@ -390,128 +395,7 @@ begin
 
 end;
 
-function TAccount_Data.FindAndClickHref(document: IHTMLDocument2;
-  SubHref: string; TypeSubHref: integer): IHTMLDocument2;
-//   Найти ссилку и кликнуть по ней
 
-// TypeSubHref   - Модификатор поиска
-//     1 - найти полное равенство ссылки с SubHref
-//     2 - ссылка должна начинаться с SubHref
-//     3 - ссылка должна содержать SubHref
-//     4 - ссылка должна заканчиваться SubHref
-var
-  ItemNumber: integer;
-  href_field: IHTMLElement;
-  All_Links: IHTMLElementCollection;
-  url:string;
-  Is_Find: boolean;
-begin
-  Result:=nil;
-  if Assigned(document) then
-  begin
-    All_Links:=document.links;
-    for ItemNumber := 0 to All_Links.Length - 1 do
-    begin  // цикл по всем ссылкам документа
-      href_field := All_Links.item(ItemNumber,'') as IHTMLElement;
-      url:=href_field.toString;
-      Is_Find:=(TypeSubHref = 1) and (url = SubHref);
-      if not Is_Find then
-        Is_Find:=(TypeSubHref = 2) and (pos(SubHref,url) = 1);
-      if not Is_Find then
-        Is_Find:=(TypeSubHref = 3) and (pos(SubHref,url) > 0);
-      if not Is_Find then
-        Is_Find:=(TypeSubHref = 4) and (pos(SubHref,url) = length(url)-length(SubHref)+1);
-      if Is_Find then
-      begin // Отлично нашли требуемую ссылку
-        WBContainer.MyElementClick(href_field);
-        Result:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
-        exit;
-      end;
-    end;  // цикл по всем ссылкам документа
-  end;
-end;
-
-function TAccount_Data.get_race_from_KarteT36(document: IHTMLDocument2): integer;
-// Определение расы по карте
-
-var
-  ItemNumber: integer;
-  href_field: IHTMLElement;
-  All_Links: IHTMLElementCollection;
-  url:string;
-  Karte_document: IHTMLDocument2;
-  field_Element: IHTMLElement;
-
-  Tmp_Collection:IHTMLElementCollection;
-  Script_Number: integer;
-  tmp_txt: string;
-  Race_String: string;
-  iii: integer;
-begin
-  Result:=0;
-  // Сначала найдем ссылку на карту и кликнем по ней
-  // дабы перейти на страницу карты
-  if Assigned(document) then
-  begin
-{   У нас же есть соответствующая функция и значит надо использовать её
-    просто закоментарил ибо не проверял, после проверки надо удалить
-    закоментаренній код
-    All_Links:=document.links;
-    for ItemNumber := 0 to All_Links.Length - 1 do
-    begin
-      href_field := All_Links.item(ItemNumber,'') as IHTMLElement;
-      url:=href_field.toString;
-      if url = (MyAccount.Connection_String+'/karte.php') then
-      begin // Отлично нашли ссылку на карту
-        WBContainer.MyElementClick(href_field);
-        Karte_document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
-        break;
-      end;
-    end;
-}
-    Karte_document:=FindAndClickHref(document,MyAccount.Connection_String+'/karte.php', 1);
-  end;
-
-  if Assigned(Karte_document) then
-  begin  // Итак карту мы получили, теперь попробуем с ней разобраться
-    field_Element:=(document as IHTMLDocument3).getElementById('a_3_3');  // Центр карты
-    url:=field_Element.toString;   // ссылка на деревушку
-    url:=copy(url,pos('?',url)+1);     // нужный нам кусочек
-
-    field_Element:=(document as IHTMLDocument3).getElementById('map');  // Отсюда нам нужен второй скрипт
-    Script_Number:=0;
-    Tmp_Collection:=(field_Element.children as ihtmlelementcollection);
-    for ItemNumber := 0 to Tmp_Collection.Length - 1 do
-    begin
-      field_Element:=Tmp_Collection.item(ItemNumber,'')  as IHTMLElement;
-      if field_Element.tagName = 'SCRIPT' then
-      begin
-        Script_Number:=Script_Number+1;
-        if Script_Number >= 2 then break;
-      end;
-    end;
-    if Script_Number = 2 then
-    begin  // Нужный нам скрипт Из него вытащим расу
-           // По простому по рабочекрестьянски
-           // Нам нужен центр карты и мы его получим!  Петр упорный :) яб регулярку юзнул...
-      tmp_txt:=field_Element.innerHTML;
-      tmp_txt:=copy(tmp_txt,pos(']]',tmp_txt)+3);   // Выбросили первую строку карты
-      tmp_txt:=copy(tmp_txt,pos(']]',tmp_txt)+3);   // Выбросили вторую строку карты
-      tmp_txt:=copy(tmp_txt,pos(']]',tmp_txt)+3);   // Выбросили третюю строку карты
-      tmp_txt:=copy(tmp_txt,1,pos(']]',tmp_txt)+1);   // Взяли 4-ю строку
-           // Работаем с 4-й строкой
-      tmp_txt:=copy(tmp_txt,pos(']',tmp_txt)+2);   // Выбросили первую колонку карты
-      tmp_txt:=copy(tmp_txt,pos(']',tmp_txt)+2);   // Выбросили вторую колонку карты
-      tmp_txt:=copy(tmp_txt,pos(']',tmp_txt)+2);   // Выбросили третюю колонку карты
-      tmp_txt:=copy(tmp_txt,1,pos(']',tmp_txt));   // Взяли 4-ю колонку
-           // И теперь имеем то что нам нужно
-           // [X,Y,?,?,"URL","?","Наименование_Деревни","Игрок","Население","?",Раса]
-           //  Раса = 1 - рим  2 - тевтон   3 - галл
-      Race_String:=copy(tmp_txt,length(tmp_txt)-1,1);
-      Result:=StrToInt(Race_String);
-    end;
-  end;  // if Assigned(Karte_document)
-end;
 
 function TAccount_Data.is_login_page(document: IHTMLDocument2): IHTMLFormElement;
 //  Если на входе страница логина, то вытаскиваем из неё форму и возвращаем
