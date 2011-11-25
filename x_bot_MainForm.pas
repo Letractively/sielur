@@ -106,8 +106,10 @@ begin
         Account_Data:=TAccount_Data.Create(ACF.Browser_RzPanel);
         ACF.RzPageControl1.ActivePageIndex:=13;
         FLog.Add('Стартуем ббота Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode);');
-        Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode, FLog);
-        ACF.Account_data:=Account_Data;
+        if Account_Data.Bot_Start_Work(Accounts_TreeView,AccountNode, FLog) then
+        begin
+          ACF.Account_data:=Account_Data;
+        end;
       end;
     end;
   end;

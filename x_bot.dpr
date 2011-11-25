@@ -14,8 +14,7 @@ uses
   Add_User_Form in 'Add_User_Form.pas' {Add_New_User},
   x_bot_utl in 'x_bot_utl.pas',
   U_Utilites in 'U_Utilites.pas',
-  PerlRegEx in 'PerlRegEx.pas',
-  UPrePare_Profile in 'UPrePare_Profile.pas';
+  PerlRegEx in 'PerlRegEx.pas';
 
 {$R *.res}
 
