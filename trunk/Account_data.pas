@@ -1,31 +1,34 @@
-unit Account_data;
+unit
+  Account_data;
 
 // Данные по аку
 //   Все что может сделать бот на аке включено сюда
 //   Начиная от входа в игру  и заканчивая выходом
 
 interface
-uses   Forms
-      ,Controls
-      ,Classes
-      ,SHDocVw
-      ,UContainer
-      ,Trava_Class
-      ,MSHTML
-      ,SysUtils
-      ,ComCtrls
-      ,RzTreeVw
-      ,x_bot_utl
-      ,U_Utilites
-      ,PerlRegEx
-      ,ActiveX
-      ,Dialogs
-      ,Windows
-      ,Variants
-      , TypInfo ;
+uses
+  Forms
+  , Controls
+  , Classes
+  , SHDocVw
+  , UContainer
+  , Trava_Class
+  , MSHTML
+  , SysUtils
+  , ComCtrls
+  , RzTreeVw
+  , x_bot_utl
+  , U_Utilites
+  , PerlRegEx
+  , ActiveX
+  , Dialogs
+  , Windows
+  , Variants
+  , TypInfo
+  ;
 
-type TAccount_Data = class
-
+type
+  TAccount_Data = class
     procedure WebBrowserDocumentComplete(ASender: TObject;
       const pDisp: IDispatch; var URL: OleVariant);
   private
@@ -36,11 +39,13 @@ type TAccount_Data = class
     fAccounts_TreeView: TRzTreeView;
     FLog: TStringList;
   public
-    constructor Create(AOwner:TComponent);
+    constructor Create(AOwner: TComponent);
     //Логин для Т4 и Т3.6 версии одинаков
-    function is_login_page(document: IHTMLDocument2): IHTMLFormElement;   // Проверка страницы на страницу входа
-    function Account_login(LoginForm: IHTMLFormElement): boolean;         //  Логие
-    function Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;  // Запуск бота для работі с аком Т3,6
+    function is_login_page(document: IHTMLDocument2): IHTMLFormElement;
+      // Проверка страницы на страницу входа
+    function Account_login(LoginForm: IHTMLFormElement): boolean; //  Логие
+    function Bot_Start_Work(aAccounts_TreeView: TRzTreeView; aAccountNode:
+      TTreeNode; ALog: TStringList): boolean; // Запуск бота для работі с аком Т3,6
     procedure Clone_Document(DocumentHTML: IHTMLDocument2);
 
     procedure set_AccountNode_StateIndex;
@@ -48,71 +53,74 @@ type TAccount_Data = class
     property WebBrowser: TWebBrowser read fWebBrowser write fWebBrowser;
     property WBContainer: TWBContainer read fWBContainer write fWBContainer;
     property MyAccount: TAccount read fMyAccount write fMyAccount;
-    property AccountNode:TTreeNode read fAccountNode write fAccountNode;
-    property Accounts_TreeView:TRzTreeView read fAccounts_TreeView write fAccounts_TreeView;
-end;
+    property AccountNode: TTreeNode read fAccountNode write fAccountNode;
+    property Accounts_TreeView: TRzTreeView read fAccounts_TreeView write
+      fAccounts_TreeView;
+  end;
 
 type
   PNodeData = ^TNodeData;
   TNodeData = record
-    NodeType: integer;  // -1  - сервер
-                        // -2  - Account
-                        // -3  - Village
-    Status: Boolean;    // только для Account
-                        //  True  - Login
-                        //  False - Logout
-    ID:    string;      // UID - для Account
-                        // ID - для Village
-    Account_Data:TAccount_Data;
-    FData: string;      // - Сервер  (NodeType=-1)
-                        // - Пароль  (NodeType=-2)
+    NodeType: integer; // -1  - сервер
+    // -2  - Account
+    // -3  - Village
+    Status: Boolean; // только для Account
+    //  True  - Login
+    //  False - Logout
+    ID: string; // UID - для Account
+    // ID - для Village
+    Account_Data: TAccount_Data;
+    FData: string; // - Сервер  (NodeType=-1)
+    // - Пароль  (NodeType=-2)
   end;
 
-function find_node(Tree: TRzTreeView; Node: TTreeNode; NodeName: String;NodeType: integer): TTreeNode; // Поиск узла
+function find_node(Tree: TRzTreeView; Node: TTreeNode; NodeName: string;
+  NodeType: integer): TTreeNode; // Поиск узла
 
 implementation
 
 function find_node(Tree: TRzTreeView; Node: TTreeNode;
-  NodeName: String; NodeType: integer): TTreeNode;
-  // Поиск узла
-  //    Если узел не найден то возвращается  nil
-  //    иначе найденный узел
-  //  Tree       -   Дерево  сервера-акки-деревни
-  //  Node       -   Узел (ветка) в котором надо найти требуемы "под-узел" если он не указан то поиск идет начиная с корня дерева
-  //  NodeName   -   Имя узла который надо найти
-  //  NodeType   -   Тип узла который надо найти
-  //
+  NodeName: string; NodeType: integer): TTreeNode;
+// Поиск узла
+//    Если узел не найден то возвращается  nil
+//    иначе найденный узел
+//  Tree       -   Дерево  сервера-акки-деревни
+//  Node       -   Узел (ветка) в котором надо найти требуемы "под-узел" если он не указан то поиск идет начиная с корня дерева
+//  NodeName   -   Имя узла который надо найти
+//  NodeType   -   Тип узла который надо найти
+//
 var
   t: integer;
 begin
-  Result:=nil;
+  Result := nil;
 
-  IF not Assigned(Node) then
-  Begin  // Поиск идёт в корне
-    Node:=Tree.Items.GetFirstNode;
-    While Assigned(Node) Do
-    Begin
-      IF (Node.Text = NodeName) and (PNodeData(Node.Data)^.NodeType = NodeType) then
-      Begin
-        Result:=Node;
+  if not Assigned(Node) then
+  begin // Поиск идёт в корне
+    Node := Tree.Items.GetFirstNode;
+    while Assigned(Node) do
+    begin
+      if (Node.Text = NodeName) and (PNodeData(Node.Data)^.NodeType = NodeType)
+        then
+      begin
+        Result := Node;
         Break;
-      End;
-      Node:=Node.GetNextSibling;
-    End;
-  End  // Поиск идёт в корне
-  Else begin  // Поиск идёт в ветке
-    For t:=0 to Node.Count - 1 Do
-    Begin
-      IF (Node[t].Text = NodeName) and (PNodeData(Node[t].Data)^.NodeType = NodeType) then
-       Begin
-         Result:=Node[t];
-         Break;
-       End;
-     End; // Поиск в ветке
+      end;
+      Node := Node.GetNextSibling;
+    end;
+  end // Поиск идёт в корне
+  else
+  begin // Поиск идёт в ветке
+    for t := 0 to Node.Count - 1 do
+    begin
+      if (Node[t].Text = NodeName) and (PNodeData(Node[t].Data)^.NodeType =
+        NodeType) then
+      begin
+        Result := Node[t];
+        Break;
+      end;
+    end; // Поиск в ветке
   end;
 end;
-
-
 
 { TAccount_Data }
 
@@ -128,49 +136,50 @@ var
   input_field: IHTMLInputElement;
   Count_input_field: integer;
 begin
-// Логика работы
-//  Пробежаться по всем полям формы
-//  найти нужные нам поля ('name' и 'password')
-//   заполнить их и нажать на кнопочку Вход
+  // Логика работы
+  //  Пробежаться по всем полям формы
+  //  найти нужные нам поля ('name' и 'password')
+  //   заполнить их и нажать на кнопочку Вход
   FLog.Add('Логинимся ...');
-  Result:=false;
-  Count_input_field:=0;
+  Result := false;
+  Count_input_field := 0;
   if Assigned(LoginForm) then
   begin
     for ItemNumber := 0 to LoginForm.Length - 1 do
-    begin  //  бежим по всем элементам формы
-      field := LoginForm.Item(ItemNumber,'') as IHTMLElement;
+    begin //  бежим по всем элементам формы
+      field := LoginForm.Item(ItemNumber, '') as IHTMLElement;
       if Assigned(field) then
       begin
         if field.tagName = 'INPUT' then
-        begin  //  поле ввода
-          input_field:=field as IHTMLInputElement;
+        begin //  поле ввода
+          input_field := field as IHTMLInputElement;
           if input_field.Name = 'name' then
           begin
-            input_field.Value := MyAccount.Login;    // Внесем сюда имя
-            Count_input_field:=Count_input_field+1;
+            input_field.Value := MyAccount.Login; // Внесем сюда имя
+            Count_input_field := Count_input_field + 1;
           end; //  'name'
           if input_field.Name = 'password' then
           begin
             input_field.Value := MyAccount.Password; // Внесем сюда пароль
-            Count_input_field:=Count_input_field+1;
-          end;  // 'password'
+            Count_input_field := Count_input_field + 1;
+          end; // 'password'
         end;
       end; //  поле ввода
-    end;   //  бежим по всем элементам формы
+    end; //  бежим по всем элементам формы
 
     if Count_input_field <> 2 then
-      begin
-        FLog.Add('Нашли больше 2 полей ввода , дето накасячили');
-        exit;  //  Если в форме не ДВА поля ввода  то мы где-то что-то прогавили
-      end;
+    begin
+      FLog.Add('Нашли больше 2 полей ввода , дето накасячили');
+      exit; //  Если в форме не ДВА поля ввода  то мы где-то что-то прогавили
+    end;
     FLog.Add('Нажали на кнопку ...');
     fWBContainer.MyFormSubmit(LoginForm); //   Нажали на кнопочку
 
     //  Проверим залогинились или нет
     //     собственно проверка тупая
     //  если на полученной страницы нет формы логина то всё в порядке
-    Result:=(is_login_page(fWBContainer.HostedBrowser.Document as IHTMLDocument2) = nil);
+    Result := (is_login_page(fWBContainer.HostedBrowser.Document as
+      IHTMLDocument2) = nil);
     if Result then
       FLog.Add('Залогинились!')
     else
@@ -179,7 +188,8 @@ begin
 
 end;
 
-function TAccount_Data.Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNode:TTreeNode; ALog: TStringList): boolean;
+function TAccount_Data.Bot_Start_Work(aAccounts_TreeView: TRzTreeView;
+  aAccountNode: TTreeNode; ALog: TStringList): boolean;
 //      Запуск работы бота с заданным аком
 //  aAccounts_TreeView   - Дерево сервера-аки-деревни
 //  aAccountNode         - Узел ака в дереве
@@ -187,21 +197,21 @@ function TAccount_Data.Bot_Start_Work(aAccounts_TreeView:TRzTreeView; aAccountNo
 //  Собственно говоря логин и парсинг текущего состояния ака
 //
 var
-  Server_Name  : string;
-  User_Name    : string;
+  Server_Name: string;
+  User_Name: string;
   Password_Name: string;
   ServerNode: TTreeNode;
   VillNode: TTreeNode;
   SndForm: IHTMLFormElement;
   Document: IHTMLDocument2;
   DocumentHTML: IHTMLDocument2; //нужно для норм отображения title (На Win XP)
-  Tmp_VillName:String;
+  Tmp_VillName: string;
   NodeDataPtr: PNodeData;
   t: integer;
   url: string;
   i: integer;
   next_dorf: string;
-  HTML: String; //сохраняем сюда исходный код страницы
+  HTML: string; //сохраняем сюда исходный код страницы
 begin
   //  Проверять не будем ибо все-же надо перед вызовом процедуры проверить
   //  1. Assigned(aAccounts_TreeView)
@@ -211,58 +221,66 @@ begin
   //  -----------------------------------------------
   //THTML := TStrings.Create;
 
-  DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
+  DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;
+  ;
 
   FLog := ALog;
-  Result:=False;
+  Result := False;
 
-  Server_Name:='';
-  User_Name:='';
-  Password_Name:='';
+  Server_Name := '';
+  User_Name := '';
+  Password_Name := '';
 
-  fAccounts_TreeView:=aAccounts_TreeView;
-  fAccountNode:=aAccountNode;
-  User_Name:=AccountNode.Text;
-  Password_Name:=PNodeData(AccountNode.Data)^.FData;
-      // И теперь сервер
-  ServerNode:=AccountNode.Parent;   // Узел сервера
-      // Проверим все-же!!!
+  fAccounts_TreeView := aAccounts_TreeView;
+  fAccountNode := aAccountNode;
+  User_Name := AccountNode.Text;
+  Password_Name := PNodeData(AccountNode.Data)^.FData;
+  // И теперь сервер
+  ServerNode := AccountNode.Parent; // Узел сервера
+  // Проверим все-же!!!
   if (PNodeData(ServerNode.Data)^.NodeType = -1) then
   begin
-    Server_Name:=ServerNode.Text;
+    Server_Name := ServerNode.Text;
   end;
 
   if (Server_Name <> '') and (User_Name <> '') and (Password_Name <> '') then
   begin
-    MyAccount.Connection_String:='http://'+Server_Name;
-    MyAccount.Login:=User_Name;
-    MyAccount.Password:=Password_Name;
+    MyAccount.Connection_String := 'http://' + Server_Name;
+    MyAccount.Login := User_Name;
+    MyAccount.Password := Password_Name;
     FLog.Add('Пользователь - ' + User_Name);
     FLog.Add('Переход по ссылке' + MyAccount.Connection_String);
-    WBContainer.MyNavigate(MyAccount.Connection_String);   //   Получение страницы логины
+    WBContainer.MyNavigate(MyAccount.Connection_String);
+      //   Получение страницы логины
     //когда получили страницу логина можно определить версию игры
     MyAccount.TravianVersion := tvNone;
     if WB_GetHTMLCode(WBContainer, HTML) then
     begin
-      if AnsiPos('Travian.Game.version = ''4.0''',HTML) <> 0 then MyAccount.TravianVersion := tv40
-      else if AnsiPos('class="v35',HTML) <> 0 then MyAccount.TravianVersion := tv36;
+      if AnsiPos('Travian.Game.version = ''4.0''', HTML) <> 0 then
+        MyAccount.TravianVersion := tv40
+      else if AnsiPos('class="v35', HTML) <> 0 then
+        MyAccount.TravianVersion := tv36;
     end;
-    FLog.Add('Версия игры '+GetEnumName(TypeInfo(TTravianVersion),Ord(MyAccount.TravianVersion)));
+    FLog.Add('Версия игры ' + GetEnumName(TypeInfo(TTravianVersion),
+      Ord(MyAccount.TravianVersion)));
     if MyAccount.TravianVersion = tvNone then
     begin
       FLog.Add('Это не трава, или данная версия игры не поддерживается');
       exit;
     end;
 
-    SndForm:=is_login_page(WBContainer.HostedBrowser.Document as IHTMLDocument2);  //  вытащим из неё форму логина
+    SndForm := is_login_page(WBContainer.HostedBrowser.Document as
+      IHTMLDocument2); //  вытащим из неё форму логина
     if Assigned(SndForm) then
-    begin  //  форма логина существует
-      Result:=Account_login(SndForm);   //  Попытка логина
+    begin //  форма логина существует
+      Result := Account_login(SndForm); //  Попытка логина
       if Result then
-      begin  // Логин нормальный!
+      begin // Логин нормальный!
         // Перейдем на страницу профиля!
         FLog.Add('Переходим на страницу профиля');
-        Document:=FindAndClickHref(WBContainer,WBContainer.HostedBrowser.Document as IHTMLDocument2,MyAccount.Connection_String+'/spieler.php?',2);
+        Document := FindAndClickHref(WBContainer,
+          WBContainer.HostedBrowser.Document as IHTMLDocument2,
+          MyAccount.Connection_String + '/spieler.php?', 2);
         if Document <> nil then
         begin //  Успешный переход на страницу профиля
           FLog.Add('Успешный переход на страницу профиля.');
@@ -277,152 +295,159 @@ begin
           DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
 }
           Clone_Document(DocumentHTML);
-          MyAccount.prepare_profile(WBContainer,Document, DocumentHTML,Flog);  // обработка профиля
+          MyAccount.prepare_profile(WBContainer, Document, DocumentHTML, Flog);
+            // обработка профиля
 
         end;
-      end;  // Логин нормальный!
-    end;   // Assigned(SndForm)
+      end; // Логин нормальный!
+    end; // Assigned(SndForm)
 
-    PNodeData(AccountNode.Data)^.Status:=Result;
+    PNodeData(AccountNode.Data)^.Status := Result;
     if Result then
-    begin  // Логин нормальный!
-      set_AccountNode_StateIndex;  //  установит индекс картинки для ака будем рисовать в дереве
-      PNodeData(AccountNode.Data)^.ID:=MyAccount.UID;
-      PNodeData(AccountNode.Data)^.Account_Data:=self;   // !!!!! Внесем себя !!!!!
+    begin // Логин нормальный!
+      set_AccountNode_StateIndex; //  установит индекс картинки для ака будем рисовать в дереве
+      PNodeData(AccountNode.Data)^.ID := MyAccount.UID;
+      PNodeData(AccountNode.Data)^.Account_Data := self;
+        // !!!!! Внесем себя !!!!!
 
       // Добавим  в дерево список деревень
-      for t := 0 to MyAccount.Derevni_Count-1 do
-      begin  //   Пробежимся по всем деревням
+      for t := 0 to MyAccount.Derevni_Count - 1 do
+      begin //   Пробежимся по всем деревням
         //  Вообщето может быть не самая удачная идея использовать в качестве идентификатора
         //  наименование деревни ибо после переименования ейной возможны проблемы
         //  однако на этапе логина всё нормально ибо тут переименованием и не пахнет
-        Tmp_VillName:=MyAccount.Derevni.Items[t].Name+' '+MyAccount.Derevni.Items[t].coord;
-        VillNode:=find_node(Accounts_TreeView,AccountNode,Tmp_VillName,-3);
+        Tmp_VillName := MyAccount.Derevni.Items[t].Name + ' ' +
+          MyAccount.Derevni.Items[t].coord;
+        VillNode := find_node(Accounts_TreeView, AccountNode, Tmp_VillName, -3);
         if not Assigned(VillNode) then
         begin // Деревню не нашли --> добавим её
-              // добавляем дочерний по отношению к AccountNode узел,
-              // в качестве текста исп. Tmp_VillName
+          // добавляем дочерний по отношению к AccountNode узел,
+          // в качестве текста исп. Tmp_VillName
           New(NodeDataPtr);
-          NodeDataPtr^.NodeType:=-3;
-          NodeDataPtr^.Status:=False;
-          NodeDataPtr^.ID:=IntToStr(MyAccount.Derevni.Items[t].ID);
-          NodeDataPtr^.FData:=MyAccount.Derevni.Items[t].Name;
-          NodeDataPtr^.Account_Data:=self;   // !!!!! Внесем себя !!!!!
-          VillNode:=Accounts_TreeView.Items.AddChildObject(AccountNode, Tmp_VillName, NodeDataPtr);
+          NodeDataPtr^.NodeType := -3;
+          NodeDataPtr^.Status := False;
+          NodeDataPtr^.ID := IntToStr(MyAccount.Derevni.Items[t].ID);
+          NodeDataPtr^.FData := MyAccount.Derevni.Items[t].Name;
+          NodeDataPtr^.Account_Data := self; // !!!!! Внесем себя !!!!!
+          VillNode := Accounts_TreeView.Items.AddChildObject(AccountNode,
+            Tmp_VillName, NodeDataPtr);
         end;
-      end;  // for t := 0 to MyAccount.Derevni_Count-1
+      end; // for t := 0 to MyAccount.Derevni_Count-1
 
       // Все с визуализацией временно покончили
       // Теперь надо пройтись по всем деревням и зачитать их данные
       // И будем это делать в отдельном цикле, хотя могли бы и в предыдущем
       // однако негоже смешивать две разные вещи!!!!
-      for t := 0 to MyAccount.Derevni_Count-1 do
+      for t := 0 to MyAccount.Derevni_Count - 1 do
       begin // цикл по деревням
         // Переключимся на нужную деревню
         // Ну а если деревушка одна то то мы всё равно стоим на ней!!!
         if MyAccount.Derevni_Count > 1 then
-          document:=FindAndClickHref(WBContainer,document,'?newdid='+MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID,4);
+          document := FindAndClickHref(WBContainer, document, '?newdid=' +
+            MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID, 4);
         if Assigned(document) then
-        begin  // Успешное переключение!
-           MyAccount.IdCurrentVill:=MyAccount.Derevni.Items[t].ID;
+        begin // Успешное переключение!
+          MyAccount.IdCurrentVill := MyAccount.Derevni.Items[t].ID;
           // Посмотрим где мы стоим
           // Если не на dorf1 или 2 то переключаемся на dorf1
-          url:=document.url;
-          if (copy(url,length(url)-4) <> 'dorf1') and (copy(url,length(url)-4) <> 'dorf2') then // Переключимся на dorf1
-            document:=FindAndClickHref(WBContainer,document,MyAccount.Connection_String+'/dorf1.php',1);
+          url := document.url;
+          if (copy(url, length(url) - 4) <> 'dorf1') and (copy(url, length(url)
+            - 4) <> 'dorf2') then // Переключимся на dorf1
+            document := FindAndClickHref(WBContainer, document,
+              MyAccount.Connection_String + '/dorf1.php', 1);
 
           Clone_Document(DocumentHTML);
           for I := 1 to 2 do
           begin
-            url:=document.url;
-            if (copy(url,length(url)-8) = 'dorf1.php') then
+            url := document.url;
+            if (copy(url, length(url) - 8) = 'dorf1.php') then
             begin
-              MyAccount.Derevni.Items[t].prepare_dorf1(document,DocumentHTML,FLog);
-              next_dorf:='dorf2.php';
+              MyAccount.Derevni.Items[t].prepare_dorf1(document, DocumentHTML,
+                FLog);
+              next_dorf := 'dorf2.php';
             end
-            else begin
-              if (copy(url,length(url)-8) = 'dorf2.php') then
+            else
+            begin
+              if (copy(url, length(url) - 8) = 'dorf2.php') then
               begin
-                MyAccount.Derevni.Items[t].prepare_dorf2(document,DocumentHTML,FLog);  // Обработка  dorf2
-                MyAccount.Derevni.Items[t].SetGidForId40(30+MyAccount.race);  // Это ограда!!!!
-                next_dorf:='dorf1.php'
+                MyAccount.Derevni.Items[t].prepare_dorf2(document, DocumentHTML,
+                  FLog); // Обработка  dorf2
+                MyAccount.Derevni.Items[t].SetGidForId40(30 + MyAccount.race);
+                  // Это ограда!!!!
+                next_dorf := 'dorf1.php'
               end
-              else begin
+              else
+              begin
                 // логическая ошибка
               end;
             end;
-            document:=FindAndClickHref(WBContainer,document,MyAccount.Connection_String+'/'+next_dorf,1);
+            document := FindAndClickHref(WBContainer, document,
+              MyAccount.Connection_String + '/' + next_dorf, 1);
           end; // for I
-        end;  // if Assigned(document)
-      end;   // цикл по деревням
-    end;    // if Result then  Логин нормальный!
+        end; // if Assigned(document)
+      end; // цикл по деревням
+    end; // if Result then  Логин нормальный!
 
-  end;  // (Server_Name <> '') and (User_Name <> '') and (Password_Name <> '')
+  end; // (Server_Name <> '') and (User_Name <> '') and (Password_Name <> '')
 end;
 
 procedure TAccount_Data.Clone_Document(DocumentHTML: IHTMLDocument2);
 var
-  HTML: String; //сохраняем сюда исходный код страницы
+  HTML: string; //сохраняем сюда исходный код страницы
   V_HTML: OleVariant; //нуна для запихания  HTML в DocumentHTML
 begin
   DocumentHTML.clear;
-  WB_GetHTMLCode(WBContainer,HTML);
+  WB_GetHTMLCode(WBContainer, HTML);
   V_HTML := VarArrayCreate([0, 0], varVariant);
   V_HTML[0] := HTML;
   DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
 end;
 
-constructor TAccount_Data.Create(AOwner:TComponent);
+constructor TAccount_Data.Create(AOwner: TComponent);
 begin
-//  inherited Create(AOwner) ;
+  //  inherited Create(AOwner) ;
 
+  fMyAccount := TAccount.Create;
 
-
-  fMyAccount:=TAccount.Create;
-
-  fWebBrowser:=TWebBrowser.Create(AOwner);
-  TWinControl(fWebBrowser).Parent:=(AOwner as TWinControl);
-  fWebBrowser.Align:=alClient;
-  fWebBrowser.OnDocumentComplete:=WebBrowserDocumentComplete;
+  fWebBrowser := TWebBrowser.Create(AOwner);
+  TWinControl(fWebBrowser).Parent := (AOwner as TWinControl);
+  fWebBrowser.Align := alClient;
+  fWebBrowser.OnDocumentComplete := WebBrowserDocumentComplete;
 
   // Создание контейнера
   fWBContainer := TWBContainer.Create(fWebBrowser);
-//  fWBContainer.OptionKeyPath:= 'Software\X-bot\Explorer';  // Настройки хранятся в HKEY_CURRENT_USER
-//  fWBContainer.UseCustomCtxMenu := True;    // use our popup menu
-//  fWBContainer.Show3DBorder := False;       // no border
-//  fWBContainer.ShowScrollBars := False;     // no scroll bars
-//  fWBContainer.AllowTextSelection := False; // no text selection (**)
+  //  fWBContainer.OptionKeyPath:= 'Software\X-bot\Explorer';  // Настройки хранятся в HKEY_CURRENT_USER
+  //  fWBContainer.UseCustomCtxMenu := True;    // use our popup menu
+  //  fWBContainer.Show3DBorder := False;       // no border
+  //  fWBContainer.ShowScrollBars := False;     // no scroll bars
+  //  fWBContainer.AllowTextSelection := False; // no text selection (**)
 
 end;
 
-
-
-function TAccount_Data.is_login_page(document: IHTMLDocument2): IHTMLFormElement;
+function TAccount_Data.is_login_page(document: IHTMLDocument2):
+  IHTMLFormElement;
 //  Если на входе страница логина, то вытаскиваем из неё форму и возвращаем
 //   иначе NIL
 var
   allForms: IHTMLElementCollection;
 begin
   //  Страница логина?????
-  Result:=nil;
-  if  Assigned(document) then
+  Result := nil;
+  if Assigned(document) then
   begin
-    allForms:=document.forms;
+    allForms := document.forms;
     if Assigned(allForms) then
-      Result:=allForms.Item('snd','') as IHTMLFormElement;
-      if Assigned(Result) then
-        if Result.action <> 'dorf1.php' then Result:=nil;
+      Result := allForms.Item('snd', '') as IHTMLFormElement;
+    if Assigned(Result) then
+      if Result.action <> 'dorf1.php' then
+        Result := nil;
   end;
 end;
 
-
 procedure TAccount_Data.set_AccountNode_StateIndex;
 begin
-  AccountNode.StateIndex:=MyAccount.Race;
+  AccountNode.StateIndex := MyAccount.Race;
 end;
-
-
-
 
 procedure TAccount_Data.WebBrowserDocumentComplete(ASender: TObject;
   const pDisp: IDispatch; var URL: OleVariant);

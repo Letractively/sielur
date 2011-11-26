@@ -1,10 +1,22 @@
-unit Add_User_Form;
+unit
+  Add_User_Form;
 
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, RzPanel;
+  Windows
+  , Messages
+  , SysUtils
+  , Variants
+  , Classes
+  , Graphics
+  , Controls
+  , Forms
+  , Dialogs
+  , StdCtrls
+  , ExtCtrls
+  , RzPanel
+  ;
 
 type
   TAdd_New_User = class(TForm)
@@ -31,8 +43,9 @@ implementation
 
 procedure TAdd_New_User.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  CanClose:=(ModalResult <> mrOk) or
-            ((Server_Name.Text <> '') and (User_Name.Text <> '') and (Password_Name.Text <> ''));
+  CanClose := (ModalResult <> mrOk) or
+    ((Server_Name.Text <> '') and (User_Name.Text <> '') and (Password_Name.Text
+    <> ''));
 
   if not CanClose then
     if Server_Name.Text = '' then
@@ -54,3 +67,4 @@ begin
 end;
 
 end.
+

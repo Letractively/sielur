@@ -12,24 +12,24 @@
   v1.0 of 2006/02/06 - original version
 }
 
-
 {$A8,B-,C+,D+,E-,F-,G+,H+,I+,J-,K-,L+,M-,N+,O+,P+,Q-,R-,S-,T-,U-,V+,W-,X+,Y+,Z1}
 {$WARN UNSAFE_TYPE OFF}
 
-
-unit UNulContainer;
+unit
+  UNulContainer;
 
 interface
 
-
 uses
-  Windows, ActiveX, SHDocVw,
-  IntfDocHostUIHandler;
+  Windows
+  , ActiveX
+  , SHDocVw
+  , IntfDocHostUIHandler;
 
 type
 
   TNulWBContainer = class(TObject,
-    IUnknown, IOleClientSite, IDocHostUIHandler)
+      IUnknown, IOleClientSite, IDocHostUIHandler)
   private
     fHostedBrowser: TWebBrowser;
     // Registration method
@@ -68,7 +68,7 @@ type
       stdcall;
     function TranslateAccelerator(const lpMsg: PMSG; const pguidCmdGroup: PGUID;
       const nCmdID: DWORD): HResult; stdcall;
-    function GetOptionKeyPath(var pchKey: POLESTR; const dw: DWORD ): HResult;
+    function GetOptionKeyPath(var pchKey: POLESTR; const dw: DWORD): HResult;
       stdcall;
     function GetDropTarget(const pDropTarget: IDropTarget;
       out ppDropTarget: IDropTarget): HResult; stdcall;
@@ -82,7 +82,6 @@ type
     destructor Destroy; override;
     property HostedBrowser: TWebBrowser read fHostedBrowser;
   end;
-
 
 implementation
 
@@ -122,8 +121,8 @@ end;
 
 function TNulWBContainer.GetContainer(
   out container: IOleContainer): HResult;
-  {Returns a pointer to the container's IOleContainer
-  interface}
+{Returns a pointer to the container's IOleContainer
+interface}
 begin
   { We do not support IOleContainer.
     However we *must* set container to nil }
@@ -156,7 +155,7 @@ end;
 
 function TNulWBContainer.GetMoniker(dwAssign, dwWhichMoniker: Integer;
   out mk: IMoniker): HResult;
-  {Returns a moniker to an object's client site}
+{Returns a moniker to an object's client site}
 begin
   { We don't support monikers.
     However we *must* set mk to nil }
@@ -193,8 +192,8 @@ begin
 end;
 
 function TNulWBContainer.OnShowWindow(fShow: BOOL): HResult;
-  {Notifies a container when an embedded object's window
-  is about to become visible or invisible}
+{Notifies a container when an embedded object's window
+is about to become visible or invisible}
 begin
   { Return S_OK to pretend we've responded to this }
   Result := S_OK;
@@ -209,8 +208,8 @@ begin
 end;
 
 function TNulWBContainer.RequestNewObjectLayout: HResult;
-  {Asks container to allocate more or less space for
-  displaying an embedded object}
+{Asks container to allocate more or less space for
+displaying an embedded object}
 begin
   { We don't support requests for a new layout }
   Result := E_NOTIMPL;
@@ -224,7 +223,7 @@ begin
 end;
 
 function TNulWBContainer.SaveObject: HResult;
-  {Saves the object associated with the client site}
+{Saves the object associated with the client site}
 begin
   { Return S_OK to pretend we've done this }
   Result := S_OK;
@@ -238,10 +237,10 @@ begin
   Assert((Site = Self as IOleClientSite) or (Site = nil));
   if not Supports(
     fHostedBrowser.DefaultInterface, IOleObject, OleObj
-  ) then
+    ) then
     raise Exception.Create(
       'Browser''s Default interface does not support IOleObject'
-    );
+      );
   OleObj.SetClientSite(Site);
 end;
 
@@ -255,8 +254,8 @@ begin
 end;
 
 function TNulWBContainer.ShowObject: HResult;
-  {Tells the container to position the object so it is
-  visible to the user}
+{Tells the container to position the object so it is
+visible to the user}
 begin
   { Return S_OK to pretend we've done this }
   Result := S_OK;
@@ -302,3 +301,4 @@ begin
 end;
 
 end.
+

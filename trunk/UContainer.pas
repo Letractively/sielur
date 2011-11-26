@@ -12,19 +12,23 @@
   v1.0 of 2006/02/06 - original version
 }
 
-
 {$A8,B-,C+,D+,E-,F-,G+,H+,I+,J-,K-,L+,M-,N+,O+,P+,Q-,R-,S-,T-,U-,V+,W-,X+,Y+,Z1}
 {$WARN UNSAFE_TYPE OFF}
 {$WARN UNSAFE_CODE OFF}
 
-
-unit UContainer;
+unit
+  UContainer;
 
 interface
 
 uses
-  Windows, ActiveX, ShDocVw,
-  UNulContainer, IntfDocHostUIHandler,MSHTML;
+  Windows
+  , ActiveX
+  , ShDocVw
+  , UNulContainer
+  , IntfDocHostUIHandler
+  , MSHTML
+  ;
 
 type
 
@@ -45,7 +49,7 @@ type
       const pdispReserved: IDispatch): HResult; stdcall;
     function GetHostInfo(
       var pInfo: TDocHostUIInfo): HResult; stdcall;
-    function GetOptionKeyPath(var pchKey: POLESTR; const dw: DWORD ): HResult;
+    function GetOptionKeyPath(var pchKey: POLESTR; const dw: DWORD): HResult;
       stdcall;
 
   public
@@ -72,7 +76,10 @@ type
 implementation
 
 uses
-  SysUtils, Themes, forms;
+  SysUtils
+  , Themes
+  , Forms
+  ;
 
 {
   TaskAllocWideString is taken from the CodeSnip database at
@@ -81,7 +88,7 @@ uses
 
 function TaskAllocWideString(const S: string): PWChar;
 var
-  StrLen: Integer;  // length of string in bytes
+  StrLen: Integer; // length of string in bytes
 begin
   // Store length of string in characters, allowing for terminal #0
   StrLen := Length(S) + 1;
@@ -157,7 +164,7 @@ begin
   begin
     // Получаем длину строки UNICODE
     ResultLen := MultiByteToWideChar(CP_ACP, 0,
-      PAnsiChar(FOptionKeyPath), -1, NIL, 0);
+      PAnsiChar(FOptionKeyPath), -1, nil, 0);
     // Выделяем память под буфер
     pchKey := CoTaskMemAlloc(ResultLen * SizeOf(WideChar));
     // Если выделение успешно, копируем строку в буфер
@@ -167,15 +174,17 @@ begin
         pchKey, ResultLen);
       Result := S_OK;
     end;
-  end else begin
+  end
+  else
+  begin
     // Свойство не задано — инициализируем параметр в NIL
-    pchKey := NIL;
+    pchKey := nil;
   end;
 end;
 
 procedure TWBContainer.MyElementClick(const MyElement: IHTMLElement);
 begin
-  DocLoaded:=false;
+  DocLoaded := false;
   MyElement.click;
   while not DocLoaded do
     Application.ProcessMessages;
@@ -183,7 +192,7 @@ end;
 
 procedure TWBContainer.MyFormSubmit(const MyForm: IHTMLFormElement);
 begin
-  DocLoaded:=false;
+  DocLoaded := false;
   MyForm.submit;
   while not DocLoaded do
     Application.ProcessMessages;
@@ -191,10 +200,10 @@ end;
 
 procedure TWBContainer.MyNavigate(const URL: WideString);
 begin
-  DocLoaded:=false;
+  DocLoaded := false;
   HostedBrowser.Navigate(URL);
   while not DocLoaded do
-     Application.ProcessMessages;
+    Application.ProcessMessages;
 end;
 
 function TWBContainer.ShowContextMenu(
