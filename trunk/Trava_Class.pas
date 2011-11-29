@@ -45,8 +45,10 @@ type
   // Обработка профиля
 
   TTravianVersion = (tv36, tv40, tvNone);
-
 type
+  TAccount=class;
+
+
   TVill = class(TCollectionItem)
   private
     fName: string;
@@ -61,6 +63,8 @@ type
     fTypeField: integer;
     fprepare_dorf1: Tprepare_dorf;
     fprepare_dorf2: Tprepare_dorf;
+    fprepare_vlist: Tprepare_dorf;
+    FAccount: TAccount;
     function get_ID: integer;
     function get_coord: string;
     function GetBuilding(Index: integer): TBuilding;
@@ -80,6 +84,13 @@ type
     procedure prepare_dorf2_T40(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
 
+    // Vlist
+    procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
+      IHTMLDocument2; FLog: TStringList);
+    procedure prepare_Vlist_T40(Document: IHTMLDocument2; DocumentHTML:
+      IHTMLDocument2; FLog: TStringList);
+
+    //
     procedure SetGidForId40(AValue: integer);
     //    function get_coord: string;
     property Name: string read fName write fName;
@@ -97,20 +108,22 @@ type
       fprepare_dorf1;
     property prepare_dorf2: Tprepare_dorf read fprepare_dorf2 write
       fprepare_dorf2;
+    property prepare_vlist: Tprepare_dorf read fprepare_vlist write
+      fprepare_vlist;
+    property Account: TAccount read FAccount write FAccount;
   end;
 
   TVills = class(TCollection)
   private
     FOwner: TPersistent;
+    FAccount: TAccount;
     function GetItems(Index: integer): TVill;
   public
     //    constructor Create(aOwner : TPersistent);virtual;
     constructor Create; virtual;
     function GetOwner: TPersistent; override;
-    function CheckAndAdd_Vill_By_XY(x, y: integer; TravianVersion:
-      TTravianVersion): TVill;
-    function CheckAndAdd_Vill_By_Coord(coord: string; TravianVersion:
-      TTravianVersion): TVill;
+    function CheckAndAdd_Vill_By_XY(x, y: integer): TVill;
+    function CheckAndAdd_Vill_By_Coord(coord: string): TVill;
 
     function FindById(ID: integer): integer;
     function FindByNewDId(NewDId: string): integer;
@@ -123,6 +136,7 @@ type
     function VillByCoord(coord: string): TVill;
     property Items[Index: integer]: TVill read GetItems;
     //    procedure AddParam(Name : string; Value : Variant);
+    property Account: TAccount read FAccount write FAccount;
   published
   end;
 
@@ -166,7 +180,7 @@ type
       fPrepare_profile;
   end;
 
-procedure prepare_VlistT36(Table_IHTML: IHTMLTable; AMyAccount: TAccount);
+//procedure prepare_Vlist36(Table_IHTML: IHTMLTable; AMyAccount: TAccount);
 
 type
   TRes_for_fields = array[1..12, 1..18] of integer;
@@ -297,6 +311,8 @@ begin
           Building[ItemBuild].name := Attr_Element.nodeValue;
     end;
   end;
+
+  prepare_Vlist_T36(Document,DocumentHTML,FLog);
 end;
 
 procedure TVill.prepare_dorf1_T40(Document: IHTMLDocument2; DocumentHTML:
@@ -306,11 +322,8 @@ var
   Area_Element: IHTMLAreaElement;
 
   Tmp_Collection: IHTMLElementCollection;
-  Attr_Collection: IHTMLAttributeCollection;
-  Attr_Element: IHTMLDOMAttribute;
 
   ItemNumber: integer;
-  ItemAttrNumber: integer;
   ItemBuild: integer;
   TmpStringBuild: string;
 begin
@@ -344,7 +357,10 @@ begin
     // Чтото типа вот такого "Залізна копальня Рівень 0"
     Building[ItemNumber + 1].lvl := StrToInt(copy(TmpStringBuild,
       LastDelimiter(' ', TmpStringBuild)));
+    Building[ItemNumber + 1].name := TmpStringBuild;
   end;
+
+  prepare_Vlist_T40(Document,DocumentHTML,FLog);
 
 end;
 
@@ -432,6 +448,149 @@ begin
 
 end;
 
+procedure TVill.prepare_Vlist_T36(Document, DocumentHTML: IHTMLDocument2;
+  FLog: TStringList);
+//  Обработка списка поселений в правой части страницы
+var
+  field_Element: IHTMLElement;
+  Table_IHTML: IHTMLTable;
+  irow: integer;
+  icol: integer;
+  Row_IHTML: IHTMLTableRow;
+  Cell_IHTML: IHTMLTableCell;
+  Cell_Element: IHTMLElement;
+  Current_Vill: TVill;
+
+  V_Name: string;
+  V_NewDid: string;
+  V_Coord: string;
+  Tmp_String: string;
+  t1, t2: integer;
+begin
+   field_Element := (document as IHTMLDocument3).getElementById('vlist');
+  if not Assigned(field_Element) then
+    exit;
+
+  Table_IHTML:=(field_Element as IHTMLTable);
+
+  // Это список поселений!!!!
+  //  Наименование
+  //  Координаты (x|y)
+  //  NewDid   -- Собственно из-за которого мы сюда и забрались!
+
+  if not Assigned(Table_IHTML) then
+    exit;
+
+  // Первая строка нам не нужна!!!
+  for irow := 1 to Table_IHTML.rows.length - 1 do
+  begin // Строки таблицы
+    Row_IHTML := Table_IHTML.rows.item(irow, '') as IHTMLTableRow;
+    //  Первая колонка нас не интересует!!!
+    for icol := 1 to Row_IHTML.cells.length - 1 do
+    begin
+      Cell_IHTML := Row_IHTML.cells.item(icol, '') as IHTMLTableCell;
+      Cell_Element := Row_IHTML.cells.item(icol, '') as IHTMLElement;
+      case icol of
+        1:
+          begin
+            V_Name := Cell_Element.innerText;
+            Tmp_String := Cell_Element.innerHTML;
+            t1 := pos('newdid=', Tmp_String);
+            t2 := pos('&', Tmp_String);
+            if (t1 > 0) and (t2 > t1 + 7) then
+              V_NewDid := copy(Tmp_String, t1 + 7, t2 - (t1 + 7));
+          end;
+        2: V_Coord := Cell_Element.innerText;
+      end;
+    end; // for icol
+    Current_Vill := Account.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
+    Current_Vill.Name := V_Name;
+    Current_Vill.NewDID := V_NewDid;
+    Current_Vill.set_coord(V_Coord);
+  end; // for irow
+end;
+
+procedure TVill.prepare_Vlist_T40(Document, DocumentHTML: IHTMLDocument2;
+  FLog: TStringList);
+var
+  ItemNumber: integer;
+  field_Element: IHTMLElement;
+  DIV_List: IHTMLElementCollection;
+  UL_List: IHTMLElementCollection;
+  LI_List: IHTMLElementCollection;
+  V_Coord: string;
+  Regex: TPerlRegEx;
+  Newdid_Current_Vill: TVill; //текущая деревня в которую впихиваем NewDid
+  V_NewDid: string; //храним NewDid текущей  расматриваемой строчки тега А
+begin
+  FLog.Add('Поопределяем newdid по сылкам справа.');
+  FLog.Add('Для это найдем елеменит LI class=entry и все че в нем лежит');
+  //здесь и берем нами созданый DocumentHTML с исходным кодом
+  DIV_List := DocumentHTML.all.tags('DIV') as IHTMLElementCollection;
+  FLog.Add('Обход все LI тегов');
+
+  for ItemNumber := 0 to DIV_List.Length - 1 do
+  begin
+    field_Element := DIV_List.item(ItemNumber, '') as IHTMLElement;
+    FLog.Add('Текущая структура ' + field_Element.className);
+    if field_Element.className = 'list' then
+    begin
+      FLog.Add('нашли нужный div клас = ' + field_Element.className);
+      UL_List := field_Element.children as IHTMLElementCollection;
+      break;
+    end;
+  end;
+
+  if Assigned(UL_List) then
+  begin
+    FLog.Add('просматриваем все ' + IntToStr(UL_List.Length) + ' сылок ');
+    for ItemNumber := 0 to UL_List.Length - 1 do
+    begin
+      //заносим в field_Element весь тег <a  ..../a> целиком
+      field_Element := UL_List.item(ItemNumber, '') as IHTMLElement;
+      LI_List := field_Element.children as IHTMLElementCollection;
+      Break;
+    end;
+
+    if Assigned(LI_List) then
+    begin
+      for ItemNumber := 0 to LI_List.Length - 1 do
+      begin    // Просмотр всего списка
+        //получили <a ...хреф с newdid каждой деревни
+        field_Element := LI_List.item(ItemNumber, '') as IHTMLElement;
+        Flog.Add('Берем хтмл код тега А (смотри ниже):');
+        FLog.Add(field_Element.innerHTML);
+        Regex := TPerlRegEx.Create(nil);
+        try
+          RegEx.RegEx :=
+            '<A.*coordinateX.*\((-*\d+).*coordinateY">(-*\d*)\).*href="\?newdid=(\d*).*';
+          RegEx.Subject := field_Element.innerHTML;
+          if Regex.Match then
+          begin
+            Flog.Add('Нашли по регулярки инфу по деревне');
+            Flog.Add('newdid=' + Regex.SubExpressions[3]);
+            Flog.Add('Координаты =' + V_Coord);
+            V_NewDid := Regex.SubExpressions[3];
+            V_Coord := '(' + Regex.SubExpressions[1] + '|' + Regex.SubExpressions[2]
+              + ')';
+            Newdid_Current_Vill := Account.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
+            Newdid_Current_Vill.NewDID := V_NewDid;
+            Newdid_Current_Vill.set_coord(V_Coord);
+          end
+          else
+          begin
+            FLog.Add('Касяк !');
+            showmessage('Rase Dont бля , короче не пашит ... выходим');
+          end;
+        finally
+          Regex.Free;
+        end;
+      end;  // Просмотр всего списка
+    end; // if Assigned(LI_List)
+  end;  // if Assigned(UL_List)
+
+end;
+
 procedure TVill.SetGidForId40(AValue: integer);
 begin
   Building[40].gid := AValue;
@@ -470,8 +629,7 @@ end;
 
 { TVills }
 
-function TVills.CheckAndAdd_Vill_By_Coord(coord: string; TravianVersion:
-  TTravianVersion): TVill;
+function TVills.CheckAndAdd_Vill_By_Coord(coord: string): TVill;
 var
   i: integer;
 begin
@@ -482,23 +640,25 @@ begin
   begin
     Result := TVill.Create(Self);
     Result.set_coord(coord);
-    case TravianVersion of
+    Result.Account := Account;
+    case Account.TravianVersion of
       tv40:
         begin
           Result.prepare_dorf1 := Result.prepare_dorf1_T40;
           Result.prepare_dorf2 := Result.prepare_dorf2_T40;
+          Result.prepare_vlist := Result.prepare_vlist_T40;
         end;
       tv36:
         begin
           Result.prepare_dorf1 := Result.prepare_dorf1_T36;
           Result.prepare_dorf2 := Result.prepare_dorf2_T36;
+          Result.prepare_vlist := Result.prepare_vlist_T36;
         end;
     end
   end;
 end;
 
-function TVills.CheckAndAdd_Vill_By_XY(x, y: integer; TravianVersion:
-  TTravianVersion): TVill;
+function TVills.CheckAndAdd_Vill_By_XY(x, y: integer): TVill;
 var
   i: integer;
 begin
@@ -510,16 +670,19 @@ begin
     Result := TVill.Create(Self);
     Result.fcoord_X := X;
     Result.fcoord_Y := Y;
-    case TravianVersion of
+    Result.Account := Account;
+    case Account.TravianVersion of
       tv40:
         begin
           Result.prepare_dorf1 := Result.prepare_dorf1_T40;
           Result.prepare_dorf2 := Result.prepare_dorf2_T40;
+          Result.prepare_vlist := Result.prepare_vlist_T40;
         end;
       tv36:
         begin
           Result.prepare_dorf1 := Result.prepare_dorf1_T36;
           Result.prepare_dorf2 := Result.prepare_dorf2_T36;
+          Result.prepare_vlist := Result.prepare_vlist_T36;
         end;
     end
   end;
@@ -662,6 +825,7 @@ constructor TAccount.Create;
 begin
   inherited;
   Derevni := TVills.Create;
+  derevni.Account:=self;
 end;
 
 function TAccount.get_Derevni_Count: integer;
@@ -680,10 +844,6 @@ var
   Row_IHTML: IHTMLTableRow;
   Cell_IHTML: IHTMLTableCell;
   Cell_Element: IHTMLElement;
-  DIV_List: IHTMLElementCollection;
-  UL_List: IHTMLElementCollection;
-  LI_List: IHTMLElementCollection;
-  List_IHTML: IHTMLListElement;
   sw: Boolean;
   //  Prifile_Line: string;
   V_Name: string;
@@ -791,8 +951,7 @@ begin
             2: V_Coord := Cell_Element.innerText;
           end;
         end;
-        Current_Vill := Derevni.CheckAndAdd_Vill_By_Coord(V_Coord,
-          TravianVersion);
+        Current_Vill := Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
         Current_Vill.Name := V_Name;
         Current_Vill.Nas := StrToInt(V_Nas);
         Current_Vill.Is_Capital := Is_Capital;
@@ -801,10 +960,14 @@ begin
       end; // for irow
     end; // if field_Element.id = 'villages' Это список поселений!!!!
 
-    if field_Element.id = 'vlist' then
-      //  Это список поселений в правой части страницы
-      prepare_VlistT36(field_Element as IHTMLTable, self);
+//    if field_Element.id = 'vlist' then
+//      //  Это список поселений в правой части страницы
+//      prepare_Vlist36(field_Element as IHTMLTable, self);
   end; // for ItemNumber ....
+
+
+  if Assigned(Current_Vill) then
+    Current_Vill.prepare_Vlist_T36(document, DocumentHTML, FLog)
 
 end;
 
@@ -820,9 +983,6 @@ var
   Row_IHTML: IHTMLTableRow;
   Cell_IHTML: IHTMLTableCell;
   Cell_Element: IHTMLElement;
-  DIV_List: IHTMLElementCollection;
-  UL_List: IHTMLElementCollection;
-  LI_List: IHTMLElementCollection;
   sw: Boolean;
   //  Prifile_Line: string;
   V_Name: string;
@@ -834,8 +994,6 @@ var
   Tmp_Element: IHTMLElement;
   url: string;
   Regex: TPerlRegEx;
-  Newdid_Current_Vill: TVill; //текущая деревня в которую впихиваем NewDid
-  V_NewDid: string; //храним NewDid текущей  расматриваемой строчки тега А
 begin
   if not Assigned(document) then
     exit;
@@ -959,8 +1117,7 @@ begin
                 Cell_Element.innerText));
           end;
         end;
-        Current_Vill := Derevni.CheckAndAdd_Vill_By_Coord(V_Coord,
-          TravianVersion);
+        Current_Vill := Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
         FLog.Add('Устанавливеем текущую деревнюю с координатами =' + V_Coord);
         Current_Vill.Name := V_Name;
         FLog.Add('Имя = ' + V_Name);
@@ -979,63 +1136,9 @@ begin
       end; // for irow
     end; // if field_Element.id = 'villages' Это список поселений!!!!
   end; // for ItemNumber ....
-  FLog.Add('Поопределяем newdid по сылкам справа.');
-  FLog.Add('Для это найдем елеменит LI class=entry и все че в нем лежит');
-  //здесь и берем нами созданый DocumentHTML с исходным кодом
-  DIV_List := DocumentHTML.all.tags('DIV') as IHTMLElementCollection;
-  FLog.Add('Обход все LI тегов');
-  for ItemNumber := 0 to DIV_List.Length - 1 do
-  begin
-    field_Element := DIV_List.item(ItemNumber, '') as IHTMLElement;
-    FLog.Add('Текущая структура ' + field_Element.className);
-    if field_Element.className = 'list' then
-    begin
-      FLog.Add('нашли нужный div клас = ' + field_Element.className);
-      UL_List := field_Element.children as IHTMLElementCollection;
-      break;
-    end;
-  end;
-  FLog.Add('просматриваем все ' + IntToStr(UL_List.Length) + ' сылок ');
-  for ItemNumber := 0 to UL_List.Length - 1 do
-  begin
-    //заносим в field_Element весь тег <a  ..../a> целиком
-    field_Element := UL_List.item(ItemNumber, '') as IHTMLElement;
-    LI_List := field_Element.children as IHTMLElementCollection;
-    Break;
-  end;
-  for ItemNumber := 0 to LI_List.Length - 1 do
-  begin
-    //получили <a ...хреф с newdid каждой деревни
-    field_Element := LI_List.item(ItemNumber, '') as IHTMLElement;
-    Flog.Add('Берем хтмл код тега А (смотри ниже):');
-    FLog.Add(field_Element.innerHTML);
-    Regex := TPerlRegEx.Create(nil);
-    try
-      RegEx.RegEx :=
-        '<A.*coordinateX.*\((-*\d+).*coordinateY">(-*\d*)\).*href="\?newdid=(\d*).*';
-      RegEx.Subject := field_Element.innerHTML;
-      if Regex.Match then
-      begin
-        Flog.Add('Нашли по регулярки инфу по деревне');
-        Flog.Add('newdid=' + Regex.SubExpressions[3]);
-        Flog.Add('Координаты =' + V_Coord);
-        V_NewDid := Regex.SubExpressions[3];
-        V_Coord := '(' + Regex.SubExpressions[1] + '|' + Regex.SubExpressions[2]
-          + ')';
-        Newdid_Current_Vill := Derevni.CheckAndAdd_Vill_By_Coord(V_Coord,
-          TravianVersion);
-        Newdid_Current_Vill.NewDID := V_NewDid;
-        Newdid_Current_Vill.set_coord(V_Coord);
-      end
-      else
-      begin
-        FLog.Add('Касяк !');
-        showmessage('Rase Dont бля , короче не пашит ... выходим');
-      end;
-    finally
-      Regex.Free;
-    end;
-  end;
+
+  if Assigned(Current_Vill) then
+    Current_Vill.prepare_Vlist_T40(document, DocumentHTML, FLog)
 
 end;
 
@@ -1060,21 +1163,23 @@ begin
     case TravianVersion of
       tv40:
         begin
-          Prepare_profile := prepare_profileT40;
           Derevni.Items[i].prepare_dorf1 := Derevni.Items[i].prepare_dorf1_T40;
           Derevni.Items[i].prepare_dorf2 := Derevni.Items[i].prepare_dorf2_T40;
+          Derevni.Items[i].prepare_vlist := Derevni.Items[i].prepare_vlist_T40;
         end;
       tv36:
         begin
           Derevni.Items[i].prepare_dorf1 := Derevni.Items[i].prepare_dorf1_T36;
           Derevni.Items[i].prepare_dorf2 := Derevni.Items[i].prepare_dorf2_T36;
+          Derevni.Items[i].prepare_vlist := Derevni.Items[i].prepare_vlist_T36;
         end;
     end;
   end;
 
 end;
 
-procedure prepare_VlistT36(Table_IHTML: IHTMLTable; AMyAccount: TAccount);
+{
+procedure prepare_Vlist36(Table_IHTML: IHTMLTable; AMyAccount: TAccount);
 //  Обработка списка поселений в правой части страницы
 var
   irow: integer;
@@ -1120,13 +1225,13 @@ begin
         2: V_Coord := Cell_Element.innerText;
       end;
     end; // for icol
-    Current_Vill := AMyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord,
-      AMyAccount.TravianVersion);
+    Current_Vill := AMyAccount.Derevni.CheckAndAdd_Vill_By_Coord(V_Coord);
     Current_Vill.Name := V_Name;
     Current_Vill.NewDID := V_NewDid;
     Current_Vill.set_coord(V_Coord);
   end; // for irow
 end;
+}
 
 end.
 
