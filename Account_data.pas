@@ -288,12 +288,6 @@ begin
           //потом в него пихаем исходный код страницы и при дальнейшей работе
           //у нас вполне нормально title получаетьс€
           //дополнительно создать екземпл€р документа и тд ... выше описано
-{          WB_GetHTMLCode(WBContainer,HTML);
-          V_HTML := VarArrayCreate([0, 0], varVariant);
-          V_HTML[0] := HTML;
-          DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;;
-          DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
-}
           Clone_Document(DocumentHTML);
           MyAccount.prepare_profile(WBContainer, Document, DocumentHTML, Flog);
             // обработка профил€
