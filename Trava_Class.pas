@@ -11,7 +11,8 @@ uses
   , UContainer
   , PerlRegEx
   , U_Utilites
-  , Dialogs;
+  , Dialogs
+  , Windows;
 
 type
   TBuilding = record
@@ -444,8 +445,111 @@ end;
 
 procedure TVill.prepare_dorf2_T40(Document: IHTMLDocument2; DocumentHTML:
   IHTMLDocument2; FLog: TStringList);
+var
+  field_Element: IHTMLElement;
+  Tmp_Collection: IHTMLElementCollection;
+  Attr_Collection: IHTMLAttributeCollection;
+  Attr_Element: IHTMLDOMAttribute;
+  Area_Element: IHTMLAreaElement;
+  Img_Element: IHTMLImgElement;
+  ItemNumber: integer;
+  ItemAttrNumber: integer;
+  ItemBuild: integer;
+  curentIDBuild: Integer;
+  TmpStringBuild: string;
+  A : TStringList;
 begin
+  // Занулим gid полей и уровни
+  for ItemBuild := 19 to 40 do
+  begin
+    Building[ItemBuild].id := ItemBuild;
+    Building[ItemBuild].gid := 0;
+    Building[ItemBuild].lvl := 0;
+  end;
 
+  //
+  // Найдем элемент по id="clickareas"
+  field_Element := (DocumentHTML as IHTMLDocument3).getElementById('clickareas');
+
+  // Ну а теперь пройдемся по содержимому field_Element
+  // и вытащим информацию о полях
+  //проходим  по всем <area alt="Торговая палата Уровень 9" shape из <map name="clickareas" id="clickareas">
+  //запоминаем АЙДИ и имя постройки (хотя там можно из названия Уровень вытащить)
+  //потом проходим по всем <img style="left:81px; top:57px; z-index:19" src="img/x.gif" class="building g28" alt="Торговая палата Уровень 9">
+  //и вытягиваем клас потсройки , просто порядок один и тотже , но для проверки будем сравнивать названия построек.
+  //P.S. Пунк збора можно построить токо на своем месте id=39, все остальное и ГЗ может быть где угодно , а да и изгородь
+  //id=40 , вот собственно все.
+   Tmp_Collection := (field_Element.children as ihtmlelementcollection);
+  for ItemNumber := 0 to 21 do
+  begin
+    Area_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLAreaElement;
+    //Img_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLImgElement;
+   // Showmessage(Img_Element.alt);
+    //showmessage(Area_Element.href);
+    curentIDBuild :=StrToInt(copy(Area_Element.href,
+                           LastDelimiter('=', Area_Element.href) + 1
+                                 )
+                            );
+    Building[curentIDBuild].Id := curentIDBuild;
+    Building[curentIDBuild].name := Area_Element.alt;
+    //По поводу ЛВЛ думаю так , все постройки имеют уровень , тоесть в своем названии число
+    //токо стройплощадка не имеет числа в названии (будівельний майданчик)
+    // по єтому если находим в строке АЛТ символы 1|2|3|4|5|6|7|8|9
+    //(0 левелом не может быть постройка) то здание есть и мы вытенем из него ЛВЛ, если нет то оставляем 0
+    //хотя как по мне build_LVL был бы более лутшим вариантом, например на других языках мы не знаем гдле они
+    //воткнут уровень постройки в начале в середине в конце ... ну рус и урк будет работать...
+    //ИЗВРАТ НО КУДА ДЕНИШСЯ ,!!!!
+    //можно конешно былоб и от сюда <div id="levels"> получить ... но справились и так
+    //то когда на другие языки переделывать так изменим.
+    if (Pos('1', Area_Element.alt)>0) or (Pos('2', Area_Element.alt)>0) or
+       (Pos('3', Area_Element.alt)>0) or (Pos('4', Area_Element.alt)>0) or
+       (Pos('5', Area_Element.alt)>0) or (Pos('6', Area_Element.alt)>0) or
+       (Pos('7', Area_Element.alt)>0) or (Pos('8', Area_Element.alt)>0) or
+       (Pos('9', Area_Element.alt)>0)
+    then
+      //нашли цыферку значит поле имеет уровень!
+      Building[curentIDBuild].lvl := StrToInt(copy(Area_Element.alt,
+                                                   LastDelimiter(' ', Area_Element.alt) + 1
+                                                   )
+                                             )
+    else
+      Building[curentIDBuild].lvl := 0;
+  end;
+  //работаем над определинием ГИД
+  //для внутрених полей надо токо первые 21 ИМГ ,22 -я это стенка
+  field_Element := (Document as IHTMLDocument3).getElementById('village_map');
+  Tmp_Collection := (field_Element.children as ihtmlelementcollection);
+  curentIDBuild := 19;
+  for ItemNumber := 0 to Tmp_Collection.length-1 do
+  begin
+    begin
+      field_Element:= Tmp_Collection.item(ItemNumber, '')as IHTMLElement;
+      if (field_Element.tagName = 'IMG') and (curentIDBuild<40) then
+      begin
+        Img_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLImgElement;
+        if Copy(
+                field_Element.className,
+                LastDelimiter(' ', field_Element.className) + 1
+               ) = 'iso'  //тоесть русским языком "Будівельний майданчик" :)
+        then
+          Building[curentIDBuild].gid := 0
+        else
+          // а тут при копировании +2 для того чтобюы избавиться от буквы 'g'
+          Building[curentIDBuild].gid := StrToInt(Copy(field_Element.className,
+                                                       LastDelimiter(' ',
+                                                                     field_Element.className
+                                                                    ) + 2
+                                                      ));
+        Inc(curentIDBuild);
+      end;
+    end;
+  end;
+  A := TStringList.Create;
+  for ItemBuild := 19 to 40 do
+   A.Add('Id=' + IntToStr(Building[ItemBuild].id) + ' Name=' +
+         Building[ItemBuild].name + ' Level=' + IntToStr(Building[ItemBuild].lvl) +
+         ' GID=' + IntToStr(Building[ItemBuild].gid));
+  showmessage(A.Text);
 end;
 
 procedure TVill.prepare_Vlist_T36(Document, DocumentHTML: IHTMLDocument2;
