@@ -350,9 +350,9 @@ begin
             document := FindAndClickHref(WBContainer, document,
               MyAccount.Connection_String + '/dorf1.php', 1);
 
-          Clone_Document(DocumentHTML);
           for I := 1 to 2 do
           begin
+            Clone_Document(DocumentHTML);
             url := document.url;
             if (copy(url, length(url) - 8) = 'dorf1.php') then
             begin
