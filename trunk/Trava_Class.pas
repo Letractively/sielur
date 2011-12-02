@@ -496,16 +496,28 @@ begin
   begin
     begin
       field_Element:= Tmp_Collection.item(ItemNumber, '')as IHTMLElement;
-      if (field_Element.tagName = 'IMG') and (curentIDBuild<40) then
+      if (field_Element.tagName = 'IMG') then
       begin
-        TmpStringBuild:=Uppercase(Copy(field_Element.className,LastDelimiter(' ', field_Element.className) + 1));  // 'ISO' или 'Gxx' где xx - ГИД
-        if TmpStringBuild <> 'ISO' then
-        begin // тобиш тут что-то построено
-          Building[curentIDBuild].gid := StrToInt(Copy(TmpStringBuild,2));
-          // Есть ГИД значит есть и Уровень постройки
-          Building[curentIDBuild].lvl := StrToInt(copy(Building[curentIDBuild].name,LastDelimiter(' ', Building[curentIDBuild].name) + 1));
+        if  (curentIDBuild = 40) then
+        begin
+          if Building[curentIDBuild].name <> '' then   // Ну нет у мну теперь деревни без ограды и поэтому пока так
+          begin
+            TmpStringBuild:=Uppercase(Copy(field_Element.className,LastDelimiter(' ', field_Element.className) + 1));  // 'ISO' или 'Gxx' где xx - ГИД
+            Building[curentIDBuild].gid := StrToInt(Copy(TmpStringBuild,2,2));
+            Building[curentIDBuild].lvl := StrToInt(copy(Building[curentIDBuild].name,LastDelimiter(' ', Building[curentIDBuild].name) + 1));
+            break;
+          end;
+        end
+        else begin
+          TmpStringBuild:=Uppercase(Copy(field_Element.className,LastDelimiter(' ', field_Element.className) + 1));  // 'ISO' или 'Gxx' где xx - ГИД
+          if TmpStringBuild <> 'ISO' then
+          begin // тобиш тут что-то построено
+            Building[curentIDBuild].gid := StrToInt(Copy(TmpStringBuild,2));
+            // Есть ГИД значит есть и Уровень постройки
+            Building[curentIDBuild].lvl := StrToInt(copy(Building[curentIDBuild].name,LastDelimiter(' ', Building[curentIDBuild].name) + 1));
+          end;
+          Inc(curentIDBuild);
         end;
-        Inc(curentIDBuild);
       end;
     end;
   end;
