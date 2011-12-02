@@ -196,14 +196,13 @@ var
     (1, 4, 1, 3, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f3        [4,4,4,6]
     (1, 4, 1, 2, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f4        [4,5,3,6]
     (1, 4, 1, 3, 1, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f5        [5,3,4,6]
-    (4, 4, 1, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4),
-    //f6 15-ка  [1,1,1,15]
+    (4, 4, 1, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4), //f6 15-ка  [1,1,1,15]
     (1, 4, 4, 1, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f7        [4,4,3,7]
     (3, 4, 4, 1, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f8        [3,4,4,7]
     (3, 4, 4, 1, 1, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f9        [4,3,4,7]
     (3, 4, 1, 2, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2), //f10       [3,5,4,6]
     (3, 1, 1, 3, 1, 4, 4, 3, 3, 2, 2, 3, 1, 4, 4, 2, 4, 4), //f11       [4,3,5,6]
-    (1, 4, 1, 1, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2) //f12       [5,4,3,6]
+    (1, 4, 1, 1, 2, 2, 3, 4, 4, 3, 3, 4, 4, 1, 4, 2, 1, 2)  //f12       [5,4,3,6]
     );
 
   Field_coord: TField_coord = (
@@ -448,16 +447,12 @@ procedure TVill.prepare_dorf2_T40(Document: IHTMLDocument2; DocumentHTML:
 var
   field_Element: IHTMLElement;
   Tmp_Collection: IHTMLElementCollection;
-  Attr_Collection: IHTMLAttributeCollection;
-  Attr_Element: IHTMLDOMAttribute;
   Area_Element: IHTMLAreaElement;
-  Img_Element: IHTMLImgElement;
   ItemNumber: integer;
-  ItemAttrNumber: integer;
   ItemBuild: integer;
   curentIDBuild: Integer;
   TmpStringBuild: string;
-  A : TStringList;
+//  A : TStringList;
 begin
   // Занулим gid полей и уровни
   for ItemBuild := 19 to 40 do
@@ -483,38 +478,15 @@ begin
   for ItemNumber := 0 to 21 do
   begin
     Area_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLAreaElement;
-    //Img_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLImgElement;
-   // Showmessage(Img_Element.alt);
-    //showmessage(Area_Element.href);
     curentIDBuild :=StrToInt(copy(Area_Element.href,
                            LastDelimiter('=', Area_Element.href) + 1
                                  )
                             );
     Building[curentIDBuild].Id := curentIDBuild;
     Building[curentIDBuild].name := Area_Element.alt;
-    //По поводу ЛВЛ думаю так , все постройки имеют уровень , тоесть в своем названии число
-    //токо стройплощадка не имеет числа в названии (будівельний майданчик)
-    // по єтому если находим в строке АЛТ символы 1|2|3|4|5|6|7|8|9
-    //(0 левелом не может быть постройка) то здание есть и мы вытенем из него ЛВЛ, если нет то оставляем 0
-    //хотя как по мне build_LVL был бы более лутшим вариантом, например на других языках мы не знаем гдле они
-    //воткнут уровень постройки в начале в середине в конце ... ну рус и урк будет работать...
-    //ИЗВРАТ НО КУДА ДЕНИШСЯ ,!!!!
-    //можно конешно былоб и от сюда <div id="levels"> получить ... но справились и так
-    //то когда на другие языки переделывать так изменим.
-    if (Pos('1', Area_Element.alt)>0) or (Pos('2', Area_Element.alt)>0) or
-       (Pos('3', Area_Element.alt)>0) or (Pos('4', Area_Element.alt)>0) or
-       (Pos('5', Area_Element.alt)>0) or (Pos('6', Area_Element.alt)>0) or
-       (Pos('7', Area_Element.alt)>0) or (Pos('8', Area_Element.alt)>0) or
-       (Pos('9', Area_Element.alt)>0)
-    then
-      //нашли цыферку значит поле имеет уровень!
-      Building[curentIDBuild].lvl := StrToInt(copy(Area_Element.alt,
-                                                   LastDelimiter(' ', Area_Element.alt) + 1
-                                                   )
-                                             )
-    else
-      Building[curentIDBuild].lvl := 0;
+      // Уроани построек вытащим позже при определении ГИД
   end;
+
   //работаем над определинием ГИД
   //для внутрених полей надо токо первые 21 ИМГ ,22 -я это стенка
   field_Element := (Document as IHTMLDocument3).getElementById('village_map');
@@ -526,30 +498,27 @@ begin
       field_Element:= Tmp_Collection.item(ItemNumber, '')as IHTMLElement;
       if (field_Element.tagName = 'IMG') and (curentIDBuild<40) then
       begin
-        Img_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLImgElement;
-        if Copy(
-                field_Element.className,
-                LastDelimiter(' ', field_Element.className) + 1
-               ) = 'iso'  //тоесть русским языком "Будівельний майданчик" :)
-        then
-          Building[curentIDBuild].gid := 0
-        else
-          // а тут при копировании +2 для того чтобюы избавиться от буквы 'g'
-          Building[curentIDBuild].gid := StrToInt(Copy(field_Element.className,
-                                                       LastDelimiter(' ',
-                                                                     field_Element.className
-                                                                    ) + 2
-                                                      ));
+        TmpStringBuild:=Uppercase(Copy(field_Element.className,LastDelimiter(' ', field_Element.className) + 1));  // 'ISO' или 'Gxx' где xx - ГИД
+        if TmpStringBuild <> 'ISO' then
+        begin // тобиш тут что-то построено
+          Building[curentIDBuild].gid := StrToInt(Copy(TmpStringBuild,2));
+          // Есть ГИД значит есть и Уровень постройки
+          Building[curentIDBuild].lvl := StrToInt(copy(Building[curentIDBuild].name,LastDelimiter(' ', Building[curentIDBuild].name) + 1));
+        end;
         Inc(curentIDBuild);
       end;
     end;
   end;
+
+{
   A := TStringList.Create;
   for ItemBuild := 19 to 40 do
    A.Add('Id=' + IntToStr(Building[ItemBuild].id) + ' Name=' +
          Building[ItemBuild].name + ' Level=' + IntToStr(Building[ItemBuild].lvl) +
          ' GID=' + IntToStr(Building[ItemBuild].gid));
   showmessage(A.Text);
+  A.Free;
+}
 end;
 
 procedure TVill.prepare_Vlist_T36(Document, DocumentHTML: IHTMLDocument2;
@@ -965,6 +934,7 @@ begin
   FLog.Add('Обработка профиля');
   Is_Capital := False;
   sw := false;
+  Current_Vill:=nil;
 
   if UID = '' then // Если неопределен то UID вытащим из URL
     UID := copy(document.url, length(Connection_String + '/spieler.php?uid=') +
@@ -1104,6 +1074,7 @@ begin
   FLog.Add('Обработка профиля');
   Is_Capital := False;
   sw := false;
+  Current_Vill:=nil;
 
   if UID = '' then // Если неопределен то UID вытащим из URL
     UID := copy(document.url, length(Connection_String + '/spieler.php?uid=') +

@@ -221,9 +221,9 @@ begin
 
   for CIndex := 19 to 40 do
   begin
-    if CIndex < 39 then
+    Lvl_index := VillForDraw.Item_Building[CIndex].lvl;
+    if CIndex < 40 then
     begin
-      Lvl_index := VillForDraw.Item_Building[CIndex].lvl;
       if VillForDraw.Item_Building[CIndex].gid > 0 then
       begin
         Build_index := VillForDraw.Item_Building[CIndex].gid;
@@ -232,8 +232,9 @@ begin
       end;
     end;
 
-    Level_ImageList.Draw(VillCenterImage.Canvas, Field_coord[1, CIndex] - 10,
-      Field_coord[2, CIndex] - 15, Lvl_index, true);
+    if Lvl_index > 0 then
+      Level_ImageList.Draw(VillCenterImage.Canvas, Field_coord[1, CIndex] - 10,
+        Field_coord[2, CIndex] - 15, Lvl_index, true);
 
   end;
 

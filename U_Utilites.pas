@@ -151,8 +151,6 @@ function get_race_from_KarteT36(document: IHTMLDocument2): integer;
 
 var
   ItemNumber: integer;
-  href_field: IHTMLElement;
-  All_Links: IHTMLElementCollection;
   url: string;
   Karte_document: IHTMLDocument2;
   field_Element: IHTMLElement;
@@ -161,7 +159,6 @@ var
   Script_Number: integer;
   tmp_txt: string;
   Race_String: string;
-  iii: integer;
 begin
   Result := 0;
 
