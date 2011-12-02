@@ -25,6 +25,8 @@ uses
   , Windows
   , Variants
   , TypInfo
+  ,urlmon
+  ,wininet
   ;
 
 type
@@ -410,6 +412,8 @@ begin
 
   // Создание контейнера
   fWBContainer := TWBContainer.Create(fWebBrowser);
+  UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, PChar('Opera/9.80 (Windows NT 6.1; U; en) Presto/2.9.168 Version/11.52'),
+                        Length('Opera/9.80 (Windows NT 6.1; U; en) Presto/2.9.168 Version/11.52'), 0);
   //  fWBContainer.OptionKeyPath:= 'Software\X-bot\Explorer';  // Настройки хранятся в HKEY_CURRENT_USER
   //  fWBContainer.UseCustomCtxMenu := True;    // use our popup menu
   //  fWBContainer.Show3DBorder := False;       // no border
