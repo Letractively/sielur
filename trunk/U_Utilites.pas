@@ -14,12 +14,15 @@ uses
   , Dialogs
   ;
 
+// Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
 function FindAndClickHref(WBContainer: TWBContainer; document: IHTMLDocument2;
   SubHref: string; TypeSubHref: integer): IHTMLDocument2;
-// Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
 
-function get_race_from_KarteT36(document: IHTMLDocument2): integer;
 // Получение расы по карте
+function get_race_from_KarteT36(document: IHTMLDocument2): integer;
+
+// Разбор  <div id="contract"
+function get_duration(Contract_Collection :IHTMLElementCollection; FLog: TStringList): integer;
 
 //получает исходный код странички из Веб контейнера
 function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: string): Boolean;
@@ -210,6 +213,74 @@ begin
       Result := StrToInt(Race_String);
     end;
   end; // if Assigned(Karte_document)
+end;
+
+function get_duration(Contract_Collection :IHTMLElementCollection; FLog: TStringList): integer;
+var
+  Tmp_Collection : IHTMLElementCollection;
+  field_Element :IHTMLElement;
+  field_contractCosts :IHTMLElement;
+  field_ShowCosts :IHTMLElement;
+  ItemNumber: integer;
+  Tmp_string: string;
+begin
+  Result:=0;
+  Flog.Add('Ищем <div class="contractCosts">');     //<div class="contractCosts"
+  field_contractCosts:=nil;
+  for ItemNumber := 0 to Contract_Collection.Length - 1 do
+  begin
+    field_Element := Contract_Collection.item(ItemNumber, '') as IHTMLElement;
+    if Uppercase(field_Element.className) = 'CONTRACTCOSTS' then
+    begin
+      field_contractCosts:=field_Element;
+      break;
+    end;
+  end;
+  if not Assigned(field_contractCosts) then
+  begin
+    Flog.Add('НЕ НАШЛИ  <div class="contractCosts">');
+    exit;
+  end;
+
+
+  Flog.Add('Ищем <div class="showCosts"...>');     //<div class="contractCosts"
+  Tmp_Collection := field_contractCosts.children as IHTMLElementCollection;
+  field_ShowCosts:=nil;
+  for ItemNumber := 0 to Contract_Collection.Length - 1 do
+  begin
+    field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+    if Uppercase(field_Element.className) = 'SHOWCOSTS' then
+    begin
+      field_ShowCosts:=field_Element;
+      break;
+    end;
+  end;
+
+  if not Assigned(field_ShowCosts) then
+  begin
+    Flog.Add('НЕ НАШЛИ Ищем <div class="showCosts"...>');
+    exit;
+  end;
+
+  Flog.Add('Ищем <span class="clocks"...>');
+  Tmp_Collection := field_ShowCosts.children as IHTMLElementCollection;
+  for ItemNumber := 0 to Tmp_Collection.Length - 1 do
+  begin
+    field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+    if Uppercase(field_Element.className) = 'CLOCKS' then
+    begin
+      Flog.Add('Нашли <span class="clocks"...>');
+      Tmp_string:=field_Element.innerText;
+      Result:= Result + StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*24*60;
+      Tmp_string:= Copy(Tmp_string,pos(':',Tmp_string)+1);
+      Result:= Result + StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*60;
+      Tmp_string:= Copy(Tmp_string,pos(':',Tmp_string)+1);
+      Result:= Result + StrToInt(Tmp_string);
+
+      showmessage(field_Element.innerText+'='+IntToStr(Result));
+    end;
+  end;
+
 end;
 
 end.

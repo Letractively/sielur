@@ -27,6 +27,7 @@ uses
   , TypInfo
   ,urlmon
   ,wininet
+  , Trava_Task
   ;
 
 type

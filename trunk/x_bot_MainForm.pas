@@ -35,6 +35,8 @@ uses
   , RzTreeVw
   , ActnList
   , ImgList
+  , Trava_task
+  , U_Utilites
   ;
 
 type
@@ -285,50 +287,6 @@ begin
   end;
 end;
 
-procedure TMainForm.Button1Click(Sender: TObject);
-var
-  ff: Textfile;
-  str: string;
-  script: string;
-
-  IDoc1: IHTMLDocument2;
-  win: IHTMLWindow2;
-  Olelanguage: Olevariant;
-  language: string;
-begin
-  {
-  //  Execute Js Scripr
-    AssignFile(ff,'D:\razrabotka\x_bot\Scr.js');
-    Reset(ff);
-    script:='';
-    while not EOF(ff) do
-    begin
-      readln(ff,str);
-      script:=script+str+#13;
-    end;
-    CloseFile(ff);
-
-    language:='JavaScript';
-   IDoc1:=Account_Data.WebBrowser.Document as IHTMLDocument2;
-    if idoc1 <> nil then
-    begin
-      try
-        win := idoc1.parentWindow;
-        if win <> nil then
-        begin
-          try
-            Olelanguage := language;
-            win.ExecScript(script, Olelanguage);
-          finally
-            win := nil;
-          end;
-        end;
-      finally
-        idoc1 := nil;
-      end;
-    end;
-  }
-end;
 
 procedure TMainForm.Delete_Account;
 var
@@ -544,6 +502,88 @@ begin
   VList_Align.Checked := not VList_Align.Checked;
   Set_VList_Align(VList_Align.Checked);
 
+end;
+
+
+procedure TMainForm.Button1Click(Sender: TObject);
+var
+  tb: TTask_Build;
+  tt:TTask_queue;
+  BID: string;
+  document: IHTMLDocument2;
+  url: string;
+
+  Tmp_Collection : IHTMLElementCollection;
+  fieldButton_Element :IHTMLButtonElement;
+  field_Element :IHTMLElement;
+  ItemNumber: integer;
+  duration: integer;
+begin
+
+  acf.Account_data.MyAccount.Derevni.VillByXY(80,71).build_center(acf.Account_data.WBContainer,'8','',duration,acf.Account_data.log);
+  showmessage(IntToStr(duration));
+
+{
+  tt:=TTask_queue.Create;
+  tb:=TTask_Build.Create;
+
+  tt.AddTask(tb);
+  tb.Build_List:='6;7;';
+  tb.Vill:=acf.Account_data.MyAccount.Derevni.VillByXY(80,71);
+
+  // Получим ID поля на котором надо строить
+  //  build.php?id=4
+  BID:=tb.Next_Build;
+
+  if BID = '' then
+  begin
+    showmessage('Очередь пустая');
+    exit;
+  end;
+
+  document:=acf.Account_data.WBContainer.HostedBrowser.Document as IHTMLDocument2;
+    // Проверим стоим ли мы на DORF1 ????  и если нет то перейдем на неё
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf1.php') then
+    document := FindAndClickHref(acf.Account_data.WBContainer, document,
+              acf.Account_data.MyAccount.Connection_String + '/' + 'dorf1.php', 1);
+
+
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf1.php') then
+  begin
+    showmessage('Что-то не то');
+    exit;
+  end;
+
+  // Нажмем на ссылку
+  document := FindAndClickHref(acf.Account_data.WBContainer, document,
+              'build.php?id='+BID, 4);
+
+
+  Tmp_Collection := Document.all.tags('button') as IHTMLElementCollection;
+
+  // Если кнопка есть то нажмем на неё
+  field_Element:=nil;
+  for ItemNumber := 0 to Tmp_Collection.Length - 1 do
+  begin
+    fieldButton_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLButtonElement;
+    field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+    acf.Account_Data.WBContainer.MyElementClick(field_Element);
+    break;
+  end;
+  if Assigned(field_Element) then
+  begin
+    acf.Account_Data.WBContainer.MyElementClick(field_Element);
+    // Анализ когда закончится стройка
+  end
+  else begin
+    // Анализ почему стройка недоступна
+    showmessage('Стройка недоступна');
+  end;
+
+//  document:=acf.Account_data.WBContainer.HostedBrowser.Document as IHTMLDocument2;
+}
 end;
 
 end.
