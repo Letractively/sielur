@@ -135,13 +135,14 @@ end;
 
 procedure TAccount_Form.Building_GridMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
-var
+{var
   r: integer;
   c: integer;
 
   IdCurrentVill: integer;
   CurrentVill: TVill;
   CIndex: integer;
+}
 begin
   {
     if Account_data = nil then exit;
@@ -293,9 +294,6 @@ procedure TAccount_Form.VillFieldImageMouseMove(Sender: TObject; Shift:
   TShiftState; X,
   Y: Integer);
 var
-  r: integer;
-  c: integer;
-
   IdCurrentVill: integer;
   CurrentVill: TVill;
   CIndex: integer;

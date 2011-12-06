@@ -84,7 +84,8 @@ type
       IHTMLDocument2; FLog: TStringList);
     procedure prepare_dorf2_T40(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
-
+    // Build
+    procedure build_center(WBContainer: TWBContainer; const FId:string; const GId: string; var duration: integer;   FLog: TStringList);
     // Vlist
     procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
@@ -239,6 +240,101 @@ begin
   end
   else
     inherited;
+end;
+
+procedure TVill.build_center(WBContainer: TWBContainer; const FId, GId: string; var duration: integer; FLog: TStringList);
+//  Постройка ферм
+//   FId  - Id  поля на котором надо строить
+//   GId  - Не используется (введено для однообразного интерфейса с стройкой в центе)
+//   duration - если > 0 то Длительность запущенной стройки
+//                   < 0 время ожидания до доступности стройки
+//                   = 0 либо поднято на максимальный уровень, либо невозможно вычислить
+var
+  document: IHTMLDocument2;
+  url: string;
+
+  Tmp_Collection : IHTMLElementCollection;
+  field_Element :IHTMLElement;
+  ItemNumber: integer;
+  Contract_Element :IHTMLElement;
+  Button_Element :IHTMLElement;
+begin
+  duration:=0;
+  Flog.Add('============================');
+  Flog.Add('Будем строить  FId='+FID+' ('+GetBuilding(StrToInt(FID)).name+')');
+
+  document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
+  // Проверим стоим ли мы на DORF1 ????  и если нет то перейдем на неё
+  Flog.Add('Проверим стоим ли мы на DORF1 ????');
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf1.php') then
+  begin
+    Flog.Add('Нет не стоим, будем на неё переходить');
+    document := FindAndClickHref(WBContainer, document,
+              Account.Connection_String + '/' + 'dorf1.php', 1);
+  end;
+
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf1.php') then
+  begin
+    Flog.Add('Что-то не то; На DORF1 так и не перешли');
+    showmessage('Что-то не то');
+    exit;
+  end;
+
+  // Нажмем на ссылку
+  Flog.Add('Нажмем на ссылку'+'build.php?id='+FId);
+  document := FindAndClickHref(WBContainer, document,'build.php?id='+FId, 4);
+
+
+  Flog.Add('Анализ <div id="contract"');   //<div id="contract" class="contractWrapper"><span class="none">Схованка максимального рівня</span></div>
+
+  Contract_Element := (Document as IHTMLDocument3).getElementById('contract');
+  Tmp_Collection := Contract_Element.children as IHTMLElementCollection;
+
+  duration:=get_duration(Tmp_Collection,FLog);
+  if duration = 0 then
+    Flog.Add('Стройка недоступна. Возможно достигли максимального уровня')
+  else begin
+    Flog.Add('Ищем кнопку');   //<div id="contract" class="contractWrapper"><span class="none">Схованка максимального рівня</span></div>
+    // Если кнопка есть то нажмем на неё
+    Button_Element:=nil;
+    for ItemNumber := 0 to Tmp_Collection.Length - 1 do
+    begin
+      field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+      if Uppercase(field_Element.className) = 'CONTRACTLINK' then
+      begin
+        field_Element:=(field_Element.children as IHTMLElementCollection).item(0,'') as IHTMLElement;
+        if Uppercase(field_Element.tagName) = 'BUTTON' then
+        begin
+          Button_Element:=field_Element;
+          break;
+        end;
+      end;
+    end;
+
+    if Assigned(Button_Element) then
+    begin
+      Flog.Add('Кнопку нашли;  Анализ');
+      Flog.Add('А теперь  Нажимаем на неё');
+      WBContainer.MyElementClick(field_Element);
+    end
+    else begin
+      // Анализ почему стройка недоступна,
+      // А тут вариантов нет, либо идет стройка, либо нехватает ресурсов
+      Flog.Add('Кнопки нет;  Анализ почему стройка недоступна');
+      // Если нехватает ресурсов то , а если идет стройка то надо подумать
+
+      // Переход на дорф1
+      document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
+      FindAndClickHref(WBContainer, document, Account.Connection_String + '/' + 'dorf1.php', 1);
+
+
+      duration:=-duration;
+    end;
+  end;
+
+
 end;
 
 constructor TVill.Create(Collection: TCollection);

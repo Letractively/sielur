@@ -14,7 +14,8 @@ uses
   Account_data in 'Account_data.pas',
   Add_User_Form in 'Add_User_Form.pas' {Add_New_User},
   x_bot_utl in 'x_bot_utl.pas',
-  U_Utilites in 'U_Utilites.pas';
+  U_Utilites in 'U_Utilites.pas',
+  Trava_Task in 'Trava_Task.pas';
 
 {$R *.res}
 
