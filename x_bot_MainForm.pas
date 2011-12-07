@@ -507,21 +507,21 @@ end;
 
 procedure TMainForm.Button1Click(Sender: TObject);
 var
-  tb: TTask_Build;
-  tt:TTask_queue;
-  BID: string;
-  document: IHTMLDocument2;
-  url: string;
+//  tb: TTask_Build;
+//  tt:TTask_queue;
+//  BID: string;
+//  document: IHTMLDocument2;
+//  url: string;
 
-  Tmp_Collection : IHTMLElementCollection;
-  fieldButton_Element :IHTMLButtonElement;
-  field_Element :IHTMLElement;
-  ItemNumber: integer;
+//  Tmp_Collection : IHTMLElementCollection;
+//  fieldButton_Element :IHTMLButtonElement;
+//  field_Element :IHTMLElement;
+//  ItemNumber: integer;
   duration: integer;
 begin
 
-  acf.Account_data.MyAccount.Derevni.VillByXY(80,71).build_center(acf.Account_data.WBContainer,'8','',duration,acf.Account_data.log);
-  showmessage(IntToStr(duration));
+//  acf.Account_data.MyAccount.Derevni.VillByXY(80,71).build_center(acf.Account_data.WBContainer,'8','',acf.Account_data.log);
+//  showmessage(IntToStr(duration));
 
 {
   tt:=TTask_queue.Create;

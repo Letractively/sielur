@@ -15,6 +15,17 @@ uses
   , Windows;
 
 type
+  TBuildReturn_Code=Record
+    Return_Code: integer;
+    Res1: integer;
+    Res2: integer;
+    Res3: integer;
+    Res4: integer;
+    Duration: integer;
+    Text: string;
+  End;
+
+
   TBuilding = record
     id: integer; // Номер поля
     name: string; // Наименование строения
@@ -66,6 +77,7 @@ type
     fprepare_dorf2: Tprepare_dorf;
     fprepare_vlist: Tprepare_dorf;
     FAccount: TAccount;
+    fBuildList: string;
     function get_ID: integer;
     function get_coord: string;
     function GetBuilding(Index: integer): TBuilding;
@@ -85,7 +97,7 @@ type
     procedure prepare_dorf2_T40(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
     // Build
-    procedure build_center(WBContainer: TWBContainer; const FId:string; const GId: string; var duration: integer;   FLog: TStringList);
+    function build_center(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     // Vlist
     procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
@@ -112,6 +124,7 @@ type
       fprepare_dorf2;
     property prepare_vlist: Tprepare_dorf read fprepare_vlist write
       fprepare_vlist;
+    property BuildList: string read fBuildList write fBuildList;
     property Account: TAccount read FAccount write FAccount;
   end;
 
@@ -155,8 +168,9 @@ type
     fPrepare_profile: Tprepare_profile;
     function get_Derevni_Count: integer;
     procedure SetTravianVersion(const Value: TTravianVersion);
+    function GetTravianTime: TDateTime;
   protected
-
+    delta_time : Tdatetime;
   public
     //    constructor Create(aOwner : TPersistent);virtual;
     constructor Create; virtual;
@@ -180,6 +194,8 @@ type
       SetTravianVersion;
     property Prepare_profile: Tprepare_profile read fPrepare_profile write
       fPrepare_profile;
+
+    property TravianTime: TDateTime read GetTravianTime;
   end;
 
 //procedure prepare_Vlist36(Table_IHTML: IHTMLTable; AMyAccount: TAccount);
@@ -242,7 +258,7 @@ begin
     inherited;
 end;
 
-procedure TVill.build_center(WBContainer: TWBContainer; const FId, GId: string; var duration: integer; FLog: TStringList);
+function TVill.build_center(WBContainer: TWBContainer; const FId, GId: string; FLog: TStringList):TBuildReturn_Code;
 //  Постройка ферм
 //   FId  - Id  поля на котором надо строить
 //   GId  - Не используется (введено для однообразного интерфейса с стройкой в центе)
@@ -259,7 +275,15 @@ var
   Contract_Element :IHTMLElement;
   Button_Element :IHTMLElement;
 begin
-  duration:=0;
+  Result.Return_Code:=0;
+  Result.Res1:=0;
+  Result.Res2:=0;
+  Result.Res3:=0;
+  Result.Res4:=0;
+  Result.Duration:=0;
+  Result.Text:='';
+
+
   Flog.Add('============================');
   Flog.Add('Будем строить  FId='+FID+' ('+GetBuilding(StrToInt(FID)).name+')');
 
@@ -278,7 +302,7 @@ begin
   if (copy(url, length(url) - 8) <> 'dorf1.php') then
   begin
     Flog.Add('Что-то не то; На DORF1 так и не перешли');
-    showmessage('Что-то не то');
+    Result.Return_Code:=-1;  // showmessage('Что-то не то');
     exit;
   end;
 
@@ -292,12 +316,11 @@ begin
   Contract_Element := (Document as IHTMLDocument3).getElementById('contract');
   Tmp_Collection := Contract_Element.children as IHTMLElementCollection;
 
-  duration:=get_duration(Tmp_Collection,FLog);
-  if duration = 0 then
+  Result.duration:=get_duration(Tmp_Collection,FLog);
+  if Result.duration = 0 then
     Flog.Add('Стройка недоступна. Возможно достигли максимального уровня')
   else begin
     Flog.Add('Ищем кнопку');   //<div id="contract" class="contractWrapper"><span class="none">Схованка максимального рівня</span></div>
-    // Если кнопка есть то нажмем на неё
     Button_Element:=nil;
     for ItemNumber := 0 to Tmp_Collection.Length - 1 do
     begin
@@ -313,8 +336,9 @@ begin
       end;
     end;
 
+
     if Assigned(Button_Element) then
-    begin
+    begin  //  кнопка есть  нажмем на неё
       Flog.Add('Кнопку нашли;  Анализ');
       Flog.Add('А теперь  Нажимаем на неё');
       WBContainer.MyElementClick(field_Element);
@@ -324,13 +348,10 @@ begin
       // А тут вариантов нет, либо идет стройка, либо нехватает ресурсов
       Flog.Add('Кнопки нет;  Анализ почему стройка недоступна');
       // Если нехватает ресурсов то , а если идет стройка то надо подумать
-
+      Result.Return_Code:=1;
       // Переход на дорф1
       document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
       FindAndClickHref(WBContainer, document, Account.Connection_String + '/' + 'dorf1.php', 1);
-
-
-      duration:=-duration;
     end;
   end;
 
@@ -1005,8 +1026,14 @@ end;
 constructor TAccount.Create;
 begin
   inherited;
+  delta_time:=0;
   Derevni := TVills.Create;
   derevni.Account:=self;
+end;
+
+function TAccount.GetTravianTime: TDateTime;
+begin
+  Result := now + delta_time;
 end;
 
 function TAccount.get_Derevni_Count: integer;
