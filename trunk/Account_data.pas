@@ -27,6 +27,7 @@ uses
   , TypInfo
   ,urlmon
   ,wininet
+  , ExtCtrls
   , Trava_Task
   ;
 
@@ -41,8 +42,13 @@ type
     fAccountNode: TTreeNode;
     fAccounts_TreeView: TRzTreeView;
     FLog: TStringList;
+    fTask_Work_Timer: TTimer;
+    fTask_queue: TTask_queue;
   public
     constructor Create(AOwner: TComponent);
+    destructor Destroy; override;
+
+
     //Логин для Т4 и Т3.6 версии одинаков
     function is_login_page(document: IHTMLDocument2): IHTMLFormElement;
       // Проверка страницы на страницу входа
@@ -50,6 +56,15 @@ type
     function Bot_Start_Work(aAccounts_TreeView: TRzTreeView; aAccountNode:
       TTreeNode; ALog: TStringList): boolean; // Запуск бота для работі с аком Т3,6
     procedure Clone_Document(DocumentHTML: IHTMLDocument2);
+
+    // Обработка очереди задач по таймеру
+    procedure Task_Work(Sender: TObject);
+
+    // Постановка задачи стройки ферм и зданий в очередь задач
+    //  Что фактически означает начать стройку
+    procedure Start_construction;
+    // Удаление  задачи стройки ферм и зданий из очередь задач
+    procedure Stop_construction;
 
     procedure set_AccountNode_StateIndex;
     property Log: TStringList read FLog write FLog;
@@ -59,6 +74,8 @@ type
     property AccountNode: TTreeNode read fAccountNode write fAccountNode;
     property Accounts_TreeView: TRzTreeView read fAccounts_TreeView write
       fAccounts_TreeView;
+    property Task_Work_Timer: TTimer read fTask_Work_Timer write fTask_Work_Timer;
+    property Task_queue: TTask_queue read fTask_queue write fTask_queue;
   end;
 
 type
@@ -385,6 +402,8 @@ begin
       end; // цикл по деревням
     end; // if Result then  Логин нормальный!
 
+    // Запускаем обработку задач
+    Task_Work_Timer.Enabled:=True;
   end; // (Server_Name <> '') and (User_Name <> '') and (Password_Name <> '')
 end;
 
@@ -405,6 +424,12 @@ begin
   //  inherited Create(AOwner) ;
 
   fMyAccount := TAccount.Create;
+  fTask_queue := TTask_queue.Create;
+  fTask_Work_Timer := TTimer.Create(nil);
+  fTask_Work_Timer.Enabled:=false;
+  fTask_Work_Timer.Interval:=1000;     // 1- секунда
+  fTask_Work_Timer.OnTimer:=Task_Work;
+
 
   fWebBrowser := TWebBrowser.Create(AOwner);
   TWinControl(fWebBrowser).Parent := (AOwner as TWinControl);
@@ -421,6 +446,16 @@ begin
   //  fWBContainer.ShowScrollBars := False;     // no scroll bars
   //  fWBContainer.AllowTextSelection := False; // no text selection (**)
 
+end;
+
+destructor TAccount_Data.Destroy;
+begin
+  fWBContainer.Free;
+  fWebBrowser.Free;
+  fTask_Work_Timer.Free;
+  fTask_queue.Free;
+  fMyAccount.Free;
+  inherited;
 end;
 
 function TAccount_Data.is_login_page(document: IHTMLDocument2):
@@ -446,6 +481,67 @@ end;
 procedure TAccount_Data.set_AccountNode_StateIndex;
 begin
   AccountNode.StateIndex := MyAccount.Race;
+end;
+
+procedure TAccount_Data.Start_construction;
+var
+  Vill: TVill;
+  Task_Build: TTask_Build;
+begin
+//  Определимся с текущей деревней
+  Vill:=MyAccount.Derevni.VillById(MyAccount.IdCurrentVill);
+// Посмотрим а есть ли что-то в очереди
+  if Vill.BuildList <> '' then
+  begin  // Да очередь не пустая значит можно!!!!!
+    // Сначала остановим обработку очереди задач
+    Task_Work_Timer.Enabled:=false;
+
+
+    Task_Build:=TTask_Build.Create;  // Создали задачу стройки
+    Task_Build.Task_type:=ttBuild;   // Указали явно тип задачи
+    Task_Build.Vill:=Vill;           // Указали Деревню
+    Task_Build.BeginWork:=MyAccount.TravianTime + 2.0/24.0/60.0; // Текущее время + 2 секунды
+    Task_Build.StopWork:=MyAccount.TravianTime + 1000;  // Текущее время + далекое будущее
+    Task_Build.TimeStart:=MyAccount.TravianTime + 3.0/24.0/60.0; // Текущее время + 3 секунды
+    Task_Build.Status:=tsReady;
+
+    Task_queue.AddTask(Task_Build);
+    // Теперь можно запустить обработку очереди задач
+    Task_Work_Timer.Enabled:=true;
+  end;
+end;
+
+procedure TAccount_Data.Stop_construction;
+begin
+
+end;
+
+procedure TAccount_Data.Task_Work(Sender: TObject);
+//  Процедура обработки очереди заданий
+var TaskNumber: integer;
+  Task :TTask;
+  r_TravianTime: TDateTime;
+
+begin
+  Task_Work_Timer.Enabled:=False;
+  r_TravianTime := MyAccount.TravianTime;
+  // Цикл обработки
+  for TaskNumber := 0 to Task_queue.Count - 1 do
+  begin
+    Task:=Task_queue.Task[TaskNumber];
+    if Task.TimeStart <= r_TravianTime then
+    begin  // Обработка задания
+      if Task.Status in [tsReady, tsRun]  then
+        Task.Execute(WBContainer,Log);
+    end;
+
+
+
+  end;
+
+  // Здесь сортировка по времени
+
+  Task_Work_Timer.Enabled:=true;
 end;
 
 procedure TAccount_Data.WebBrowserDocumentComplete(ASender: TObject;
