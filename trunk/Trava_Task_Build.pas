@@ -66,8 +66,7 @@ begin
   if Vill.Account.Derevni_Count > 1 then
   begin
     document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
-    document := FindAndClickHref(WBContainer, document, '?newdid=' +
-            Vill.NewDID + '&uid=' + vill.Account.UID, 4);
+    document := FindAndClickHref(WBContainer, document, '?newdid=' + Vill.NewDID, 4);
   end;
 
 
