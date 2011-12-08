@@ -357,13 +357,19 @@ begin
       // Теперь надо пройтись по всем деревням и зачитать их данные
       // И будем это делать в отдельном цикле, хотя могли бы и в предыдущем
       // однако негоже смешивать две разные вещи!!!!
+
+      // Станем на дорф1
+      document := FindAndClickHref(WBContainer, document, MyAccount.Connection_String + '/dorf1.php', 1);
+
       for t := 0 to MyAccount.Derevni_Count - 1 do
       begin // цикл по деревням
         // Переключимся на нужную деревню
         // Ну а если деревушка одна то то мы всё равно стоим на ней!!!
         if MyAccount.Derevni_Count > 1 then
           document := FindAndClickHref(WBContainer, document, '?newdid=' +
-            MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID, 4);
+            MyAccount.Derevni.Items[t].NewDID, 4);
+//          document := FindAndClickHref(WBContainer, document, '?newdid=' +
+//            MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID, 4);
         if Assigned(document) then
         begin // Успешное переключение!
           MyAccount.IdCurrentVill := MyAccount.Derevni.Items[t].ID;
