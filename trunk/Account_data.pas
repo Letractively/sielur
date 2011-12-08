@@ -30,6 +30,7 @@ uses
   , ExtCtrls
    ,Trava_My_Const
   , Trava_Task
+  ,Trava_Task_Build
   ;
 
 type
@@ -539,9 +540,6 @@ begin
       if Task.Status in [tsReady, tsRun]  then
         Task.Execute(WBContainer,Log);
     end;
-
-
-
   end;
 
   // Здесь сортировка по времени

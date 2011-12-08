@@ -598,6 +598,7 @@ begin
 }
 end;
 
+// Это мне не нравится, но как по другому сделать пока не придумал
 procedure Set_ACF_BuildList(const Value: string);
 begin
   acf.BuildList.Text:=Value;

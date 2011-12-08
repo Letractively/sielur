@@ -67,6 +67,7 @@
 			<DCCReference Include="x_bot_utl.pas"/>
 			<DCCReference Include="U_Utilites.pas"/>
 			<DCCReference Include="Trava_Task.pas"/>
+			<DCCReference Include="Trava_Task_Build.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>
