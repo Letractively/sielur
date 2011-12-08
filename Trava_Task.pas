@@ -5,10 +5,10 @@ interface
 uses Trava_class
    , MSHTML
    ,Classes
-
+   ,Trava_My_Const
    , UContainer
   , U_Utilites
-   ;
+  ,x_bot_utl   ;
 
 
 
@@ -55,15 +55,17 @@ type
 
   TTask_Build=class(TTask)
     private
+    fSet_ACF_BuildList: TSet_ACF_BuildList;
     function get_Next_Build: string;
-//    function GetBuildList: string;
-//    procedure SetBuildList(const Value: string);
+    function GetBuildList: string;
+    procedure SetBuildList(const Value: string);
     protected
     public
       constructor Create; override;
-//      property BuildList : string read GetBuildList write SetBuildList;
+      property BuildList : string read GetBuildList write SetBuildList;
       procedure Execute(WBContainer: TWBContainer;   FLog: TStringList); override;
       property Next_Build: string read get_Next_Build;
+      property Set_ACF_BuildList: TSet_ACF_BuildList read fSet_ACF_BuildList write fSet_ACF_BuildList;
   end;
 
   TTask_array= array of TTask;
@@ -227,7 +229,7 @@ begin
   if Status = tsRun then
   begin
     FLog.Add('Стройка закончена, переходим в режим ожидания');
-    TimeStart:=Vill.Account.TravianTime + (rc.Duration+12) / 24.0/60.0;
+    TimeStart:=Vill.Account.TravianTime + SecondsTime(12);  // 12 секунд
     Status := tsReady;
     exit;
   end;
@@ -253,7 +255,7 @@ begin
   Begin
     FLog.Add('Чегото не хватило  Сдвинем задание');
     if rc.Duration > 0 then
-      TimeStart:=Vill.Account.TravianTime + (rc.Duration+4) / 24.0/60.0
+      TimeStart:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4)   // 4 секунды к времени ожидания
     else  // Отметим на удаление и надо разбираться
     begin
       Status:=tsDelete;
@@ -266,34 +268,40 @@ begin
     FLog.Add('Стройку запустили, переходим в режим "выполнения"');
     // Надо удалить то что мы строим из очереди
     // Потом сделаем нормально!!!
-    vill.BuildList:=copy(vill.BuildList,1,pos(Next_Build,vill.BuildList)-1)+
-                    copy(vill.BuildList,pos(Next_Build,vill.BuildList)+length(Next_Build));
+    BuildList:=copy(vill.BuildList,1,pos(Next_Build,vill.BuildList)-1)+
+                    copy(vill.BuildList,pos(Next_Build,vill.BuildList)+length(Next_Build)+1);
     Status:=tsRun;
-    TimeStart:=Vill.Account.TravianTime + (rc.Duration+4) / 24.0/60.0;
+    TimeStart:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4);  // +4-ре секунды к ожидаемому времени окончания
   end;
 
 
 
 end;
 
-{
+
 function TTask_Build.GetBuildList: string;
 begin
   Result:=Vill.BuildList;
 end;
-}
+
 function TTask_Build.get_Next_Build: string;
 begin
- result:=copy(Vill.BuildList,1,pos(';',Vill.BuildList)-1);
+ result:=copy(BuildList,1,pos(';',BuildList)-1);
 // BuildList:=copy(BuildList,1,pos(';',BuildList)+1);
 end;
 
-{
+
 procedure TTask_Build.SetBuildList(const Value: string);
 begin
   Vill.BuildList:=Value;
+
+  if vill.ID = Vill.Account.IdCurrentVill then
+    if Assigned(Set_ACF_BuildList) then Set_ACF_BuildList(Value);
+
+
+
 end;
-}
+
 
 { TTask_queue }
 

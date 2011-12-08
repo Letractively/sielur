@@ -95,6 +95,8 @@ type
     property Log: TStringList read FLog write FLog;
   end;
 
+  procedure Set_ACF_BuildList(const Value: string);
+
 var
   MainForm: TMainForm;
   App_Dir: string;
@@ -138,13 +140,17 @@ begin
         if Account_Data.Bot_Start_Work(Accounts_TreeView, AccountNode, FLog)
           then
         begin
+          Account_Data.Set_ACF_BuildList:=Set_ACF_BuildList;
           ACF.Account_data := Account_Data;
+
         end;
       end;
     end;
   end;
   FLog.Add('выкосить FLog.Add( в procedure TMainForm.Login_Account; и сохранение в файл');
-  FLog.SaveToFile('C:\AdskiyLog.txt');
+  if DirectoryExists('log') = false then CreateDir('log');
+  FLog.SaveToFile(App_Dir+'log\AdskiyLog.txt');
+  FLog.Clear;
 end;
 
 procedure TMainForm.Accounts_TreeViewChange(Sender: TObject; Node: TTreeNode);
@@ -321,6 +327,12 @@ procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Save_control; // Запомним настройки формы
   Save_Accounts_Tree; // Запомним настройки аков
+
+  FLog.Add('Завершаем работу');
+  if DirectoryExists('log') = false then CreateDir('log');
+  FLog.SaveToFile(App_Dir+'log\WLog.txt');
+  FLog.Clear;
+
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
@@ -586,4 +598,9 @@ begin
 }
 end;
 
+procedure Set_ACF_BuildList(const Value: string);
+begin
+  acf.BuildList.Text:=Value;
+
+end;
 end.

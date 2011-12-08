@@ -5,7 +5,9 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, SHDocVw, ExtCtrls, RzPanel, RzTabs, UContainer,
-  Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage;
+  Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage,
+     Trava_My_Const
+;
 
 type
   TAccount_Form = class(TFrame)
@@ -75,8 +77,7 @@ type
     function GetBuildingIndexOnMouseXY(X, Y: Integer): Integer;
   public
     { Public declarations }
-    property Account_data: TAccount_data read FAccount_data write
-      SetAccount_data;
+    property Account_data: TAccount_data read FAccount_data write  SetAccount_data;
   end;
 
 implementation
@@ -175,6 +176,8 @@ procedure TAccount_Form.Button2Click(Sender: TObject);
 begin
   account_data.Stop_construction;
 end;
+
+
 
 procedure TAccount_Form.DrawCurrentVill;
 var
@@ -383,6 +386,8 @@ begin
   FAccount_data := Value;
   DrawCurrentVill;
 end;
+
+
 
 procedure TAccount_Form.View_Account(Account_data: TAccount_data);
 begin

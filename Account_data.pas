@@ -28,6 +28,7 @@ uses
   ,urlmon
   ,wininet
   , ExtCtrls
+   ,Trava_My_Const
   , Trava_Task
   ;
 
@@ -44,6 +45,7 @@ type
     FLog: TStringList;
     fTask_Work_Timer: TTimer;
     fTask_queue: TTask_queue;
+    fSet_ACF_BuildList: TSet_ACF_BuildList;
   public
     constructor Create(AOwner: TComponent);
     destructor Destroy; override;
@@ -76,6 +78,8 @@ type
       fAccounts_TreeView;
     property Task_Work_Timer: TTimer read fTask_Work_Timer write fTask_Work_Timer;
     property Task_queue: TTask_queue read fTask_queue write fTask_queue;
+    property Set_ACF_BuildList: TSet_ACF_BuildList read fSet_ACF_BuildList write fSet_ACF_BuildList;
+
   end;
 
 type
@@ -500,10 +504,11 @@ begin
     Task_Build:=TTask_Build.Create;  // Создали задачу стройки
     Task_Build.Task_type:=ttBuild;   // Указали явно тип задачи
     Task_Build.Vill:=Vill;           // Указали Деревню
-    Task_Build.BeginWork:=MyAccount.TravianTime + 2.0/24.0/60.0; // Текущее время + 2 секунды
+    Task_Build.BeginWork:=MyAccount.TravianTime + SecondsTime(2); // Текущее время + 2 секунды
     Task_Build.StopWork:=MyAccount.TravianTime + 1000;  // Текущее время + далекое будущее
-    Task_Build.TimeStart:=MyAccount.TravianTime + 3.0/24.0/60.0; // Текущее время + 3 секунды
+    Task_Build.TimeStart:=MyAccount.TravianTime + SecondsTime(3); // Текущее время + 3 секунды
     Task_Build.Status:=tsReady;
+    Task_Build.Set_ACF_BuildList:=Set_ACF_BuildList;
 
     Task_queue.AddTask(Task_Build);
     // Теперь можно запустить обработку очереди задач
