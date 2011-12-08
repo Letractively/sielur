@@ -617,7 +617,7 @@ begin
       begin
         if  (curentIDBuild = 40) then
         begin
-          if Building[curentIDBuild].name <> '' then   // Ну нет у мну теперь деревни без ограды и поэтому пока так
+          if copy(Building[curentIDBuild].name,1,4) = 'wall' then   // Ну нет у мну теперь деревни без ограды и поэтому пока так
           begin
             TmpStringBuild:=Uppercase(Copy(field_Element.className,LastDelimiter(' ', field_Element.className) + 1));  // 'ISO' или 'Gxx' где xx - ГИД
             Building[curentIDBuild].gid := StrToInt(Copy(TmpStringBuild,2,2));

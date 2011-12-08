@@ -138,8 +138,7 @@ begin
       if not Is_Find then
         Is_Find := (TypeSubHref = 3) and (pos(SubHref, url) > 0);
       if not Is_Find then
-        Is_Find := (TypeSubHref = 4) and (pos(SubHref, url) = length(url) -
-          length(SubHref) + 1);
+        Is_Find := (TypeSubHref = 4) and (pos(SubHref, url) > 0) and (pos(SubHref, url) = length(url) - length(SubHref) + 1);
       if Is_Find then
       begin // Отлично нашли требуемую ссылку
         WBContainer.MyElementClick(href_field);
