@@ -26,6 +26,7 @@ function get_duration(Contract_Collection :IHTMLElementCollection; FLog: TString
 
 //получает исходный код странички из Веб контейнера
 function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: string): Boolean;
+
 //Получает исходный код странички из екземпляра IHTMLDocument2
 function Doc_GetHTMLCode(Adocument: IHTMLDocument2): string;
 function bild_lvl(s: string): integer;
@@ -276,8 +277,6 @@ begin
       Result:= Result + StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*60;
       Tmp_string:= Copy(Tmp_string,pos(':',Tmp_string)+1);
       Result:= Result + StrToInt(Tmp_string);
-
-      showmessage(field_Element.innerText+'='+IntToStr(Result));
     end;
   end;
 
