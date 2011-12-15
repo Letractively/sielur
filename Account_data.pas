@@ -513,7 +513,7 @@ begin
     Task_Build.Vill:=Vill;           // Указали Деревню
     Task_Build.BeginWork:=MyAccount.TravianTime + SecondsTime(2); // Текущее время + 2 секунды
     Task_Build.StopWork:=MyAccount.TravianTime + 1000;  // Текущее время + далекое будущее
-    Task_Build.TimeStart:=MyAccount.TravianTime + SecondsTime(3); // Текущее время + 3 секунды
+    Task_Build.TimeCheck:=MyAccount.TravianTime + SecondsTime(3); // Текущее время + 3 секунды
     Task_Build.Status:=tsReady;
     Task_Build.Set_ACF_BuildList:=Set_ACF_BuildList;
 
@@ -537,18 +537,26 @@ var TaskNumber: integer;
 begin
   Task_Work_Timer.Enabled:=False;
   r_TravianTime := MyAccount.TravianTime;
+
   // Цикл обработки
   for TaskNumber := 0 to Task_queue.Count - 1 do
   begin
     Task:=Task_queue.Task[TaskNumber];
-    if Task.TimeStart <= r_TravianTime then
-    begin  // Обработка задания
-      if Task.Status in [tsReady, tsRun]  then
-        Task.Execute(WBContainer,Log);
+    if Task.BeginWork <= r_TravianTime then   // Рабочая Смена уже идет, надо работать
+    begin
+      if Task.TimeCheck <= r_TravianTime then
+      begin  // Обработка задания
+        if Task.Status in [tsReady, tsRun]  then
+          Task.Execute(WBContainer,Log);
+      end;
     end;
+
+    if Task.StopWork < r_TravianTime then    // Рабочая смена истекла, безжалостно ставим его на удаление
+      Task.Status:=tsDelete;
   end;
 
-  // Здесь сортировка по времени
+  // Здесь сортировка по времени, а также удаление задач со статусом tsDelete
+  Task_queue.sort;
 
   Task_Work_Timer.Enabled:=true;
 end;
