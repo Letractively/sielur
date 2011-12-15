@@ -17,8 +17,7 @@ type
 
   TTask=class
     private
-//    fTimeStop: TDateTime;
-    fTimeStart: TDateTime;
+    fTimeCheck: TDateTime;
     fVill: TVill;
     fStatus: TTaskStatus;
     fTask_type: TTask_type;
@@ -38,8 +37,7 @@ type
       property BeginWork: TDateTime read fBeginWork write fBeginWork;
       property StopWork: TDateTime read fStopWork write fStopWork;
 
-      property TimeStart: TDateTime read fTimeStart write fTimeStart;  // Время запуска задания
-//      property TimeStop: TDateTime read fTimeStop write fTimeStop;     // Время запуска задания
+      property TimeCheck: TDateTime read fTimeCheck write fTimeCheck;  // Время запуска задания
       property Status : TTaskStatus read fStatus write fStatus;        // Статус задания
   end;
 
@@ -54,6 +52,7 @@ type
     protected
     public
       constructor Create;
+      procedure sort;
       procedure AddTask(task: TTask);
       property Count: integer read get_count;
       property Task[const TaskNumber: integer]: TTask read GetTask;
@@ -213,6 +212,51 @@ end;
 function TTask_queue.get_count: integer;
 begin
   result:=High(task_array)+1;
+end;
+
+procedure TTask_queue.sort;
+var TaskNumber: integer;
+  r_Time: TDateTime;
+  Task :TTask;
+  sw:  boolean;
+  IndexFirstTaskDelete: integer;
+  lastPosition: integer;
+begin
+
+
+// Сортируем по дате старта задания с учетом его статуса
+sw:=true;
+lastPosition:=Count - 1;
+while(sw) do
+begin
+  sw:=false;
+  for TaskNumber := 0 to lastPosition-1 do
+  begin
+    if task_array[TaskNumber+1].Status <> tsDelete then   // Следующее не на удалении
+      if (task_array[TaskNumber].Status = tsDelete) or    // Текущее на удалении или
+         (task_array[TaskNumber].TimeCheck > task_array[TaskNumber+1].TimeCheck)  // его время > времени следующего
+      then begin  // Надо менять местами
+        sw:=true;
+        Task:=task_array[TaskNumber];
+        task_array[TaskNumber]:=task_array[TaskNumber+1];
+        task_array[TaskNumber+1]:=Task;
+      end;
+  end;
+  DEC(LastPosition);
+end;
+
+// Ищем позицию с удаленным заданием
+IndexFirstTaskDelete:=-1;
+for TaskNumber := Count - 1 downto 0 do
+begin
+  if task_array[TaskNumber].Status = tsDelete then IndexFirstTaskDelete:=TaskNumber
+  else break;
+end;
+
+if IndexFirstTaskDelete > -1 then
+  SetLength(task_array, IndexFirstTaskDelete);
+
+
 end;
 
 end.

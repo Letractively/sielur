@@ -50,7 +50,7 @@ begin
   if Status = tsRun then
   begin
     FLog.Add('—тройка закончена, переходим в режим ожидани€');
-    TimeStart:=Vill.Account.TravianTime + SecondsTime(12);  // 12 секунд
+    TimeCheck:=Vill.Account.TravianTime + SecondsTime(12);  // 12 секунд
     Status := tsReady;
     exit;
   end;
@@ -84,7 +84,7 @@ begin
   Begin
     FLog.Add('„егото не хватило  —двинем задание');
     if rc.Duration > 0 then
-      TimeStart:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4)   // 4 секунды к времени ожидани€
+      TimeCheck:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4)   // 4 секунды к времени ожидани€
     else  // ќтметим на удаление и надо разбиратьс€
     begin
       Status:=tsDelete;
@@ -100,7 +100,7 @@ begin
     BuildList:=copy(vill.BuildList,1,pos(Next_Build,vill.BuildList)-1)+
                     copy(vill.BuildList,pos(Next_Build,vill.BuildList)+length(Next_Build)+1);
     Status:=tsRun;
-    TimeStart:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4);  // +4-ре секунды к ожидаемому времени окончани€
+    TimeCheck:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4);  // +4-ре секунды к ожидаемому времени окончани€
   end;
 
 
