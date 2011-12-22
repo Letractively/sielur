@@ -15,15 +15,6 @@ uses
   , Windows;
 
 type
-  TBuildReturn_Code=Record
-    Return_Code: integer;
-    Res1: integer;
-    Res2: integer;
-    Res3: integer;
-    Res4: integer;
-    Duration: integer;
-    Text: string;
-  End;
 
 
   TBuilding = record
@@ -97,6 +88,7 @@ type
     procedure prepare_dorf2_T40(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
     // Build
+    function build_field(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     function build_center(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     // Vlist
     procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
@@ -166,6 +158,7 @@ type
     FIdCurrentVill: integer;
     FTravianVersion: TTravianVersion;
     fPrepare_profile: Tprepare_profile;
+    fAccount_data: TObject;
     function get_Derevni_Count: integer;
     procedure SetTravianVersion(const Value: TTravianVersion);
     function GetTravianTime: TDateTime;
@@ -196,6 +189,7 @@ type
       fPrepare_profile;
 
     property TravianTime: TDateTime read GetTravianTime;
+    property Account_data : TObject read fAccount_data write fAccount_data;
   end;
 
 //procedure prepare_Vlist36(Table_IHTML: IHTMLTable; AMyAccount: TAccount);
@@ -235,6 +229,8 @@ var
 
 implementation
 
+uses account_data;
+
 type
   EGrParamError = class(Exception);
 
@@ -258,7 +254,13 @@ begin
     inherited;
 end;
 
-function TVill.build_center(WBContainer: TWBContainer; const FId, GId: string; FLog: TStringList):TBuildReturn_Code;
+function TVill.build_center(WBContainer: TWBContainer; const FId, GId: string;
+  FLog: TStringList): TBuildReturn_Code;
+begin
+//
+end;
+
+function TVill.build_field(WBContainer: TWBContainer; const FId, GId: string; FLog: TStringList):TBuildReturn_Code;
 //  Постройка ферм
 //   FId  - Id  поля на котором надо строить
 //   GId  - Не используется (введено для однообразного интерфейса с стройкой в центе)
@@ -274,18 +276,23 @@ var
   ItemNumber: integer;
   Contract_Element :IHTMLElement;
   Button_Element :IHTMLElement;
+  DocumentHTML: IHTMLDocument2;
 begin
   Result.Return_Code:=0;
-  Result.Res1:=0;
-  Result.Res2:=0;
-  Result.Res3:=0;
-  Result.Res4:=0;
+  Result.R1:=0;
+  Result.R2:=0;
+  Result.R3:=0;
+  Result.R4:=0;
+  Result.R5:=0;
   Result.Duration:=0;
+  Result.Wait:=0;
   Result.Text:='';
 
 
   Flog.Add('============================');
   Flog.Add('Будем строить  FId='+FID+' ('+GetBuilding(StrToInt(FID)).name+')');
+
+  DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;
 
   document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
   // Проверим стоим ли мы на DORF1 ????  и если нет то перейдем на неё
@@ -306,6 +313,10 @@ begin
     exit;
   end;
 
+  // Итак стоим на дорф1  отпрепарируем её
+  (Account.Account_data as TAccount_Data).Clone_Document(DocumentHTML);
+  prepare_dorf1(document,DocumentHTML,Flog);
+
   // Нажмем на ссылку
   Flog.Add('Нажмем на ссылку'+'build.php?id='+FId);
   document := FindAndClickHref(WBContainer, document,'build.php?id='+FId, 4);
@@ -316,11 +327,10 @@ begin
   Contract_Element := (Document as IHTMLDocument3).getElementById('contract');
   Tmp_Collection := Contract_Element.children as IHTMLElementCollection;
 
-  Result.duration:=get_duration(Tmp_Collection,FLog);
-  if Result.duration = 0 then
-    Flog.Add('Стройка недоступна. Возможно достигли максимального уровня')
-  else begin
-    Flog.Add('Ищем кнопку');   //<div id="contract" class="contractWrapper"><span class="none">Схованка максимального рівня</span></div>
+  Result:=Prepare_Contract(Tmp_Collection,FLog);
+  if Result.Return_Code = 0 then
+  begin
+    Flog.Add('Ищем кнопку');
     Button_Element:=nil;
     for ItemNumber := 0 to Tmp_Collection.Length - 1 do
     begin
@@ -344,17 +354,29 @@ begin
       WBContainer.MyElementClick(field_Element);
     end
     else begin
-      // Анализ почему стройка недоступна,
-      // А тут вариантов нет, либо идет стройка, либо нехватает ресурсов
-      Flog.Add('Кнопки нет;  Анализ почему стройка недоступна');
-      // Если нехватает ресурсов то , а если идет стройка то надо подумать
-      Result.Return_Code:=1;
-      // Переход на дорф1
-      document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
-      FindAndClickHref(WBContainer, document, Account.Connection_String + '/' + 'dorf1.php', 1);
+      Flog.Add('Кнопки нет; Ошибка в парсере и нашей логике');
+      Result.Return_Code:=-1;
     end;
   end;
 
+
+  // Проверим стоим ли мы на DORF1 ????  и если нет то перейдем на неё
+  Flog.Add('Проверим стоим ли мы на DORF1 ????');
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf1.php') then
+  begin
+    Flog.Add('Нет не стоим, будем на неё переходить');
+    document := FindAndClickHref(WBContainer, document,
+              Account.Connection_String + '/' + 'dorf1.php', 1);
+  end;
+
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf1.php') then
+  begin
+    Flog.Add('Что-то не то; На DORF1 так и не перешли');
+    Result.Return_Code:=-3;  // showmessage('Что-то не то');
+    exit;
+  end;
 
 end;
 
@@ -580,8 +602,12 @@ begin
   end;
 
   //
+
   // Найдем элемент по id="clickareas"
   field_Element := (DocumentHTML as IHTMLDocument3).getElementById('clickareas');
+  FLog.Add('11111111  clickareas  ');
+  FLog.Add(field_Element.innerHTML);
+  FLog.Add('==========================');
 
   // Ну а теперь пройдемся по содержимому field_Element
   // и вытащим информацию о полях
@@ -607,6 +633,9 @@ begin
   //работаем над определинием ГИД
   //для внутрених полей надо токо первые 21 ИМГ ,22 -я это стенка
   field_Element := (Document as IHTMLDocument3).getElementById('village_map');
+  FLog.Add('22222222222222   village_map');
+  FLog.Add(field_Element.innerHTML);
+  FLog.Add('==========================');
   Tmp_Collection := (field_Element.children as ihtmlelementcollection);
   curentIDBuild := 19;
   for ItemNumber := 0 to Tmp_Collection.length-1 do
@@ -1022,6 +1051,7 @@ begin
     raise EGrParamError.Create(rsVillBadNewDId + '- "' + NewDId + '"');
 
 end;
+
 
 constructor TAccount.Create;
 begin

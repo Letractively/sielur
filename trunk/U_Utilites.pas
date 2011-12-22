@@ -12,6 +12,7 @@ uses
   , UContainer
   , SysUtils
   , Dialogs
+  ,Trava_My_Const
   ;
 
 // Эмуляция работы пользователя - Найти ссылку и кликнуть по нец
@@ -22,7 +23,7 @@ function FindAndClickHref(WBContainer: TWBContainer; document: IHTMLDocument2;
 function get_race_from_KarteT36(document: IHTMLDocument2): integer;
 
 // Разбор  <div id="contract"
-function get_duration(Contract_Collection :IHTMLElementCollection; FLog: TStringList): integer;
+function Prepare_Contract(Contract_Collection :IHTMLElementCollection; FLog: TStringList): TBuildReturn_Code;
 
 //получает исходный код странички из Веб контейнера
 function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: string): Boolean;
@@ -215,34 +216,60 @@ begin
   end; // if Assigned(Karte_document)
 end;
 
-function get_duration(Contract_Collection :IHTMLElementCollection; FLog: TStringList): integer;
+function Prepare_Contract(Contract_Collection :IHTMLElementCollection; FLog: TStringList): TBuildReturn_Code;
 var
   Tmp_Collection : IHTMLElementCollection;
   field_Element :IHTMLElement;
   field_contractCosts :IHTMLElement;
+  field_contractLink :IHTMLElement;
+  field_Span :IHTMLElement;
   field_ShowCosts :IHTMLElement;
   ItemNumber: integer;
   Tmp_string: string;
 begin
-  Result:=0;
-  Flog.Add('Ищем <div class="contractCosts">');     //<div class="contractCosts"
+  Result.Return_Code:=0;
+  Result.R1:=0;
+  Result.R2:=0;
+  Result.R3:=0;
+  Result.R4:=0;
+  Result.Duration:=0;
+  Result.Wait:=0;
+  Result.Text:='';
+
+  Flog.Add('Ищем contractCosts и contractLink');     //<div class=....
   field_contractCosts:=nil;
+  field_contractLink:=nil;
+  field_Span:=nil;
   for ItemNumber := 0 to Contract_Collection.Length - 1 do
   begin
     field_Element := Contract_Collection.item(ItemNumber, '') as IHTMLElement;
     if Uppercase(field_Element.className) = 'CONTRACTCOSTS' then
-    begin
-      field_contractCosts:=field_Element;
-      break;
-    end;
+      field_contractCosts:=field_Element
+    else if Uppercase(field_Element.className) = 'CONTRACTLINK' then
+      field_contractLink:=field_Element
+    else if Uppercase(field_Element.tagName) = 'SPAN' then
+      field_Span:=field_Element;
+
+    if Assigned(field_Span) or (Assigned(field_contractCosts) and Assigned(field_contractLink)) then break;
   end;
-  if not Assigned(field_contractCosts) then
-  begin
-    Flog.Add('НЕ НАШЛИ  <div class="contractCosts">');
+
+  if Assigned(field_Span) then
+  begin   // Достигли максимального уровня
+    Result.Text:=field_Span.innerText;
+    Result.Return_Code:=1;
     exit;
   end;
 
 
+  if not Assigned(field_contractCosts) then
+  begin
+    Flog.Add('НЕ НАШЛИ  <div class="contractCosts">');
+    Result.Return_Code:=-1;
+    exit;
+  end;
+
+
+  Flog.Add('Обработка contractCosts');             //<div class="contractCosts"
   Flog.Add('Ищем <div class="showCosts"...>');     //<div class="contractCosts"
   Tmp_Collection := field_contractCosts.children as IHTMLElementCollection;
   field_ShowCosts:=nil;
@@ -258,27 +285,99 @@ begin
 
   if not Assigned(field_ShowCosts) then
   begin
-    Flog.Add('НЕ НАШЛИ Ищем <div class="showCosts"...>');
+    Flog.Add('НЕ НАШЛИ <div class="showCosts"...>');
+    Result.Return_Code:=-2;
     exit;
   end;
 
-  Flog.Add('Ищем <span class="clocks"...>');
+  Flog.Add('Обработка <div class="showCosts"...>');
   Tmp_Collection := field_ShowCosts.children as IHTMLElementCollection;
   for ItemNumber := 0 to Tmp_Collection.Length - 1 do
   begin
     field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+
+    if copy(Uppercase(field_Element.className),1,12) = 'RESOURCES R1' then
+    begin
+      Flog.Add('Нашли <span class="resources r1..."...>');
+      Tmp_string:=field_Element.innerText;
+      Result.R1:=StrToInt(Tmp_string);
+      //  Ахватает этого ресурса???
+      if Uppercase(field_Element.className) <> 'RESOURCES R1' then
+        Result.R1:=-Result.R1;
+    end;
+
+    if copy(Uppercase(field_Element.className),1,12) = 'RESOURCES R2' then
+    begin
+      Flog.Add('Нашли <span class="resources r2..."...>');
+      Tmp_string:=field_Element.innerText;
+      Result.R2:=StrToInt(Tmp_string);
+      //  Ахватает этого ресурса???
+      if Uppercase(field_Element.className) <> 'RESOURCES R2' then
+        Result.R2:=-Result.R2;
+    end;
+
+    if copy(Uppercase(field_Element.className),1,12) = 'RESOURCES R3' then
+    begin
+      Flog.Add('Нашли <span class="resources r3..."...>');
+      Tmp_string:=field_Element.innerText;
+      Result.R2:=StrToInt(Tmp_string);
+      //  Ахватает этого ресурса???
+      if Uppercase(field_Element.className) <> 'RESOURCES R3' then
+        Result.R3:=-Result.R3;
+    end;
+
+    if copy(Uppercase(field_Element.className),1,12) = 'RESOURCES R4' then
+    begin
+      Flog.Add('Нашли <span class="resources r4..."...>');
+      Tmp_string:=field_Element.innerText;
+      Result.R4:=StrToInt(Tmp_string);
+      //  Ахватает этого ресурса???
+      if Uppercase(field_Element.className) <> 'RESOURCES R4' then
+        Result.R4:=-Result.R4;
+    end;
+
+    if copy(Uppercase(field_Element.className),1,12) = 'RESOURCES R5' then
+    begin
+      Flog.Add('Нашли <span class="resources r5..."...>');
+      Tmp_string:=field_Element.innerText;
+      Result.R5:=StrToInt(Tmp_string);
+      //  Ахватает этого ресурса???
+      if Uppercase(field_Element.className) <> 'RESOURCES R5' then
+        Result.R5:=-Result.R5;
+    end;
+
     if Uppercase(field_Element.className) = 'CLOCKS' then
     begin
       Flog.Add('Нашли <span class="clocks"...>');
       Tmp_string:=field_Element.innerText;
-      Result:= Result + StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*24*60;
+      Result.Duration:=StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*24*60;
       Tmp_string:= Copy(Tmp_string,pos(':',Tmp_string)+1);
-      Result:= Result + StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*60;
+      Result.Duration:= Result.Duration + StrToInt(copy(Tmp_string,1,pos(':',Tmp_string)-1))*60;
       Tmp_string:= Copy(Tmp_string,pos(':',Tmp_string)+1);
-      Result:= Result + StrToInt(Tmp_string);
+      Result.Duration:= Result.Duration + StrToInt(Tmp_string);
     end;
   end;
 
+  if (Result.r5 < 0) then Result.Return_Code:=3
+  else if (Result.r1 < 0) or (Result.r2 < 0) or (Result.r3 < 0) or (Result.r4 < 0) then Result.Return_Code:=2;
+
+  if not Assigned(field_contractLink) then
+  begin
+    Flog.Add('НЕ НАШЛИ  <div class="contractLink">');
+    Result.Return_Code:=-1;
+    exit;
+  end;
+
+  Flog.Add('Обработка contractLink');             //<div class="contractLink"
+
+  Tmp_Collection:=field_contractLink.children as IHTMLElementCollection;
+  field_Element:=Tmp_Collection.item(0,'') as IHTMLElement;
+  if Uppercase(field_Element.tagName) = 'SPAN' then
+  begin
+    Result.Wait:=1*60*35;                    // ждать 35 минут!!!!!! Вообщето по хорошему надо это время как-то выцарапать из field_Element.innerText
+    Result.Text:=field_Element.innerText;
+    if Result.Return_Code = 0 then Result.Return_Code:=4;
+  end;
 end;
 
 end.
