@@ -605,9 +605,6 @@ begin
 
   // Найдем элемент по id="clickareas"
   field_Element := (DocumentHTML as IHTMLDocument3).getElementById('clickareas');
-  FLog.Add('11111111  clickareas  ');
-  FLog.Add(field_Element.innerHTML);
-  FLog.Add('==========================');
 
   // Ну а теперь пройдемся по содержимому field_Element
   // и вытащим информацию о полях
@@ -633,9 +630,6 @@ begin
   //работаем над определинием ГИД
   //для внутрених полей надо токо первые 21 ИМГ ,22 -я это стенка
   field_Element := (Document as IHTMLDocument3).getElementById('village_map');
-  FLog.Add('22222222222222   village_map');
-  FLog.Add(field_Element.innerHTML);
-  FLog.Add('==========================');
   Tmp_Collection := (field_Element.children as ihtmlelementcollection);
   curentIDBuild := 19;
   for ItemNumber := 0 to Tmp_Collection.length-1 do

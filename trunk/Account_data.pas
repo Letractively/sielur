@@ -373,17 +373,13 @@ begin
           // Посмотрим где мы стоим
           // Если не на dorf1 или 2 то переключаемся на dorf1
           url := document.url;
-//          if (copy(url, length(url) - 4) <> 'dorf1') and (copy(url, length(url)
-//            - 4) <> 'dorf2') then // Переключимся на dorf1
           if (pos('dorf1',url) <> 0) or  (pos('dorf2',url) <> 0) then // Переключимся на dorf1
             document := FindAndClickHref(WBContainer, document, MyAccount.Connection_String + '/dorf1.php', 1);
 
-          flog.Add('!!!!!!!!!!!!'+MyAccount.Derevni.Items[t].NewDID);
           for I := 1 to 2 do
           begin
             Clone_Document(DocumentHTML);
             url := document.url;
-//            if (copy(url, length(url) - 8) = 'dorf1.php') then
             if (pos('dorf1',url) <> 0) then
             begin
               MyAccount.Derevni.Items[t].prepare_dorf1(document, DocumentHTML,
@@ -392,7 +388,6 @@ begin
             end
             else
             begin
-//              if (copy(url, length(url) - 8) = 'dorf2.php') then
             if (pos('dorf2',url) <> 0) then
               begin
                 MyAccount.Derevni.Items[t].prepare_dorf2(document, DocumentHTML,
@@ -406,8 +401,8 @@ begin
                 // логическая ошибка
               end;
             end;
-            document := FindAndClickHref(WBContainer, document,
-              MyAccount.Connection_String + '/' + next_dorf, 1);
+            if i = 1 then
+              document := FindAndClickHref(WBContainer, document,MyAccount.Connection_String + '/' + next_dorf, 1);
           end; // for I
         end; // if Assigned(document)
       end; // цикл по деревням
@@ -423,11 +418,14 @@ var
   HTML: string; //сохраняем сюда исходный код страницы
   V_HTML: OleVariant; //нуна для запихания  HTML в DocumentHTML
 begin
-  DocumentHTML.clear;
-  WB_GetHTMLCode(WBContainer, HTML);
-  V_HTML := VarArrayCreate([0, 0], varVariant);
-  V_HTML[0] := HTML;
-  DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
+  if Assigned(DocumentHTML)  then
+  begin
+    DocumentHTML.close;
+    WB_GetHTMLCode(WBContainer, HTML);
+    V_HTML := VarArrayCreate([0, 0], varVariant);
+    V_HTML[0] := HTML;
+    DocumentHTML.Write(PSafeArray(TVarData(V_HTML).VArray));
+  end;
 end;
 
 constructor TAccount_Data.Create(AOwner: TComponent);
