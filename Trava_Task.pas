@@ -253,9 +253,15 @@ begin
   else break;
 end;
 
-if IndexFirstTaskDelete > -1 then
-  SetLength(task_array, IndexFirstTaskDelete);
 
+if IndexFirstTaskDelete > -1 then
+begin
+  // Осводим память
+  for TaskNumber := IndexFirstTaskDelete to Count - 1 do task_array[TaskNumber].Free;
+
+  // Удалим из массива
+  SetLength(task_array, IndexFirstTaskDelete);
+end;
 
 end;
 

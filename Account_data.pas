@@ -366,26 +366,25 @@ begin
         // Переключимся на нужную деревню
         // Ну а если деревушка одна то то мы всё равно стоим на ней!!!
         if MyAccount.Derevni_Count > 1 then
-          document := FindAndClickHref(WBContainer, document, '?newdid=' +
-            MyAccount.Derevni.Items[t].NewDID, 4);
-//          document := FindAndClickHref(WBContainer, document, '?newdid=' +
-//            MyAccount.Derevni.Items[t].NewDID + '&uid=' + MyAccount.UID, 4);
+          document := FindAndClickHref(WBContainer, document, '?newdid=' + MyAccount.Derevni.Items[t].NewDID, 4);
         if Assigned(document) then
         begin // Успешное переключение!
           MyAccount.IdCurrentVill := MyAccount.Derevni.Items[t].ID;
           // Посмотрим где мы стоим
           // Если не на dorf1 или 2 то переключаемся на dorf1
           url := document.url;
-          if (copy(url, length(url) - 4) <> 'dorf1') and (copy(url, length(url)
-            - 4) <> 'dorf2') then // Переключимся на dorf1
-            document := FindAndClickHref(WBContainer, document,
-              MyAccount.Connection_String + '/dorf1.php', 1);
+//          if (copy(url, length(url) - 4) <> 'dorf1') and (copy(url, length(url)
+//            - 4) <> 'dorf2') then // Переключимся на dorf1
+          if (pos('dorf1',url) <> 0) or  (pos('dorf2',url) <> 0) then // Переключимся на dorf1
+            document := FindAndClickHref(WBContainer, document, MyAccount.Connection_String + '/dorf1.php', 1);
 
+          flog.Add('!!!!!!!!!!!!'+MyAccount.Derevni.Items[t].NewDID);
           for I := 1 to 2 do
           begin
             Clone_Document(DocumentHTML);
             url := document.url;
-            if (copy(url, length(url) - 8) = 'dorf1.php') then
+//            if (copy(url, length(url) - 8) = 'dorf1.php') then
+            if (pos('dorf1',url) <> 0) then
             begin
               MyAccount.Derevni.Items[t].prepare_dorf1(document, DocumentHTML,
                 FLog);
@@ -393,7 +392,8 @@ begin
             end
             else
             begin
-              if (copy(url, length(url) - 8) = 'dorf2.php') then
+//              if (copy(url, length(url) - 8) = 'dorf2.php') then
+            if (pos('dorf2',url) <> 0) then
               begin
                 MyAccount.Derevni.Items[t].prepare_dorf2(document, DocumentHTML,
                   FLog); // Обработка  dorf2
@@ -435,6 +435,8 @@ begin
   //  inherited Create(AOwner) ;
 
   fMyAccount := TAccount.Create;
+  fMyAccount.Account_data:=self;
+
   fTask_queue := TTask_queue.Create;
   fTask_Work_Timer := TTimer.Create(nil);
   fTask_Work_Timer.Enabled:=false;
@@ -482,10 +484,14 @@ begin
   begin
     allForms := document.forms;
     if Assigned(allForms) then
+    begin
       Result := allForms.Item('snd', '') as IHTMLFormElement;
-    if Assigned(Result) then
-      if Result.action <> 'dorf1.php' then
-        Result := nil;
+      if not Assigned(Result) then
+        Result := allForms.Item('login', '') as IHTMLFormElement;
+      if Assigned(Result) then
+        if Result.action <> 'dorf1.php' then Result := nil;
+    end;
+
   end;
 end;
 

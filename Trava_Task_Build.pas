@@ -4,6 +4,7 @@ interface
 uses Trava_class
    , MSHTML
    ,Classes
+   , SysUtils
    ,Trava_My_Const
    , UContainer
   , U_Utilites
@@ -73,23 +74,39 @@ begin
   FID:=copy(Next_Build,1,pos('-',Next_Build)-1);
   GID:=copy(Next_Build,pos('-',Next_Build)+1);
 
-  RC:=Vill.build_center(WBContainer,FId,Gid,Flog);
+  if StrToInt(GID) <= 18 then
+    RC:=Vill.build_field(WBContainer,FId,Gid,Flog)
+  else
+    RC:=Vill.build_center(WBContainer,FId,Gid,Flog);
+
   if RC.Return_Code = -1 then // Фигня какаято отметим задание на удаление
   begin
     FLog.Add('Надо разобраться Фигня какаято отметим задание на удаление');
     Status:=tsDelete;
   end;
 
-  if RC.Return_Code = 1 then  // Чегото не хватило  Сдвинем задание
+  if RC.Return_Code = 1 then // Достигли максимального уровня
+  begin
+    FLog.Add('Достигли максимального уровня  отметим задание на удаление');
+    Status:=tsDelete;
+  end;
+
+  if RC.Return_Code = 2 then  // Чего то не хватило  Сдвинем задание
   Begin
     FLog.Add('Чегото не хватило  Сдвинем задание');
-    if rc.Duration > 0 then
-      TimeCheck:=Vill.Account.TravianTime + SecondsTime(rc.Duration+4)   // 4 секунды к времени ожидания
-    else  // Отметим на удаление и надо разбираться
-    begin
-      Status:=tsDelete;
-      flog.Add('НЕ смогли определить время ожидания')
-    end;
+    TimeCheck:=Vill.Account.TravianTime + SecondsTime(rc.Wait+4)   // +4 секунды к времени ожидания
+  End;
+
+  if RC.Return_Code = 3 then  // Не хватает производства кропа
+  Begin
+    FLog.Add('Не хватает производства кропа. Сдвинем задание на ДООООЛГО');
+    TimeCheck:=Vill.Account.TravianTime + SecondsTime(rc.Wait+4)   // +4 секунды к времени ожидания
+  End;
+
+  if RC.Return_Code = 4 then  //  Вроде всё в порядке но стройка недоступна !!!!!!
+  Begin
+    FLog.Add(' Вроде всё в порядке но стройка недоступна !!!!!!. Сдвинем задание на ДООООЛГО');
+    TimeCheck:=Vill.Account.TravianTime + SecondsTime(rc.Wait+4)   // +4 секунды к времени ожидания
   End;
 
   if RC.Return_Code = 0 then  // Все в порядке запустилось
