@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, SHDocVw, ExtCtrls, RzPanel, RzTabs, UContainer,
   Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage,
-     Trava_My_Const, ComCtrls, RzListVw
+     Trava_My_Const, ComCtrls, RzListVw, Trava_Task_Farm, Add_Farm_Form
 ;
 
 type
@@ -65,6 +65,7 @@ type
     procedure VillFieldImageDblClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
   private
     // ColBuilding_Grid: integer;
     // RowBuilding_Grid: integer;
@@ -182,6 +183,15 @@ begin
 end;
 
 
+
+procedure TAccount_Form.Button3Click(Sender: TObject);
+var
+  FartItem: TFarmItem;
+  a: array[1..11] of integer;
+  Pt: TPoint;
+begin
+  FartItem := TFarmItem.Create(1,pt,a,50,20,siraid,'','',0,999,0);
+end;
 
 procedure TAccount_Form.DrawCurrentVill;
 var
