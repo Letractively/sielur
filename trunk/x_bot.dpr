@@ -16,7 +16,10 @@ uses
   x_bot_utl in 'x_bot_utl.pas',
   U_Utilites in 'U_Utilites.pas',
   Trava_Task in 'Trava_Task.pas',
-  Trava_Task_Build in 'Trava_Task_Build.pas';
+  Trava_Task_Build in 'Trava_Task_Build.pas',
+  Trava_Task_Farm in 'Trava_Task_Farm.pas',
+  Add_Farm_Form in 'Add_Farm_Form.pas' {AddFarmForm},
+  Trava_Troops_Unit in 'Trava_Troops_Unit.pas';
 
 {$R *.res}
 
@@ -25,5 +28,6 @@ begin
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TAdd_New_User, Add_New_User);
+  Application.CreateForm(TAddFarmForm, AddFarmForm);
   Application.Run;
 end.

@@ -116,9 +116,7 @@ Type
     FQuantity: integer;  //количество ходок , думаю при 1000 безконечтно бегать...
     FGeneration: integer; //поколение , тоесть скок раз туда збегали.
   public
-    constructor Create (AId: Integer; AEnable: Boolean; AName: string;
-                        AState: TStateItem; AOrderId: Integer;
-                        ACoords: TPoint; ATroops: TTroops;
+    constructor Create (AId: Integer; ACoords: TPoint; ATroops: TTroops;
                         AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
                         AProfitFarm, AProfitHistory: String; ACasualtiesInpRocPerAtack,
                         AQuantity, FGeneration: Integer); overload;
@@ -639,8 +637,7 @@ end;
 
 procedure TFarmList.Add(AFarmItem: TFarmItem);
 begin
-   inherited Add(TFarmItem.Create(AFarmItem.Id, AFarmItem.Enable, AFarmItem.Name,
-                 AFarmItem.GetState, AFarmItem.OrderId, AFarmItem.Coords,
+   inherited Add(TFarmItem.Create(AFarmItem.Id, AFarmItem.Coords,
                  AFarmItem.FTroops, AFarmItem.Finterval, AFarmItem.FIntervalRange,
                  AFarmItem.FTypeAtaks, AFarmItem.FProfitFarm, AFarmItem.FProfitHistory,
                  AFarmItem.FCasualtiesInpRocPerAtack, AFarmItem.FQuantity,
@@ -649,15 +646,14 @@ end;
 
 { TFarmItem }
 
-constructor TFarmItem.Create(AId: Integer; AEnable: Boolean; AName: string;
-                          AState: TStateItem ; AOrderId: Integer;
+constructor TFarmItem.Create(AId: Integer;
                           ACoords: TPoint; ATroops: TTroops;
                           AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
                           AProfitFarm, AProfitHistory: String;
                           ACasualtiesInpRocPerAtack, AQuantity, FGeneration: Integer);
 begin
-  Inherited Create(AId, AEnable, AName);
-  Inherited Create;
+  Inherited Create(AId);
+  //Inherited Create;
     Coords := ACoords;
     FTroops := ATroops;
     Finterval := AInterval;
