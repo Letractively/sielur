@@ -1,9 +1,9 @@
-object Form2: TForm2
+object AddFarmForm: TAddFarmForm
   Left = 0
   Top = 0
   BiDiMode = bdLeftToRight
   BorderStyle = bsNone
-  Caption = 'Form2'
+  Caption = 'AddFarmForm'
   ClientHeight = 540
   ClientWidth = 509
   Color = clBtnFace
@@ -23,7 +23,6 @@ object Form2: TForm2
     Height = 540
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 633
     object pnlTroops: TPanel
       Left = 8
       Top = 7

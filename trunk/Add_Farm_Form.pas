@@ -7,7 +7,7 @@ uses
   Dialogs, ExtCtrls, StdCtrls;
 
 type
-  TForm2 = class(TForm)
+  TAddFarmForm = class(TForm)
     Mainpnl: TPanel;
     pnlTroops: TPanel;
     edtT1: TEdit;
@@ -54,7 +54,7 @@ type
   end;
 
 var
-  Form2: TForm2;
+  AddFarmForm: TAddFarmForm;
 
 implementation
 
