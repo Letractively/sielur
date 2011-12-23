@@ -187,10 +187,10 @@ end;
 procedure TAccount_Form.Button3Click(Sender: TObject);
 var
   FartItem: TFarmItem;
-  a: array[1..11] of integer;
-  Pt: TPoint;
+  a: TTroops;
+  TP: TPoint;
 begin
-  FartItem := TFarmItem.Create(1,pt,a,50,20,siraid,'','',0,999,0);
+  FartItem := TFarmItem.Create(1,TP,a,50,20,siraid,'','',0,999,0);
 end;
 
 procedure TAccount_Form.DrawCurrentVill;
