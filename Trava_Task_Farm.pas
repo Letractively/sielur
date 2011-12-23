@@ -30,7 +30,7 @@ type
     FEnable: boolean;
     FName: string;
     FState: TStateItem;
-    constructor Create(AId: Integer; AEnable: Boolean; AName: string;
+    constructor Create(AId: Integer; AEnable: Boolean ; AName: string;
       AState: TStateItem = siNone; AOrderId: Integer = 0); overload;
     constructor Create(AId: Integer); overload;
     function GetEnable: Boolean; virtual;
@@ -104,9 +104,9 @@ Type
   TFarmItem = class(TCustomItem)
   //тут допишу седня или завтра
     //координаты цели  Coords.X Coords.Y
-    Coords: TPoint;
+    FCoords: TPoint;
     FTroops: TTroops; //здесь подрузумиваеться тип юнитов но их пока нету
-    Finterval: Integer; //период фарма
+    FInterval: Integer; //период фарма
     FIntervalRange: Integer; //разброс при фарме
     FTypeAtaks: TTypeAtaks; // тип атаки , нападение набег подкрепление
     FProfitFarm: String; //в дальнейшем будет учитываться прибыьл фарма
@@ -116,10 +116,17 @@ Type
     FQuantity: integer;  //количество ходок , думаю при 1000 безконечтно бегать...
     FGeneration: integer; //поколение , тоесть скок раз туда збегали.
   public
-    constructor Create (AId: Integer; ACoords: TPoint; ATroops: TTroops;
-                        AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
-                        AProfitFarm, AProfitHistory: String; ACasualtiesInpRocPerAtack,
-                        AQuantity, FGeneration: Integer); overload;
+//    constructor Create (AId: Integer; ACoords: TPoint; ATroops: TTroops;
+//                        AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
+//                        AProfitFarm, AProfitHistory: String; ACasualtiesInpRocPerAtack,
+//                        AQuantity, FGeneration: Integer);
+   property Coords: TPoint; read FCoords write FCoords;
+   property Troops: TTroops; read FTroops write FTroops;
+   property Interval: Integer; read FInterval write FInterval;
+   property IntervalRange: Integer; read FIntervalRange write FIntervalRange;
+   property TypeAtaks: TTypeAtaks; read FTypeAtaks write FTypeAtaks;
+   property ProfitFarm: String; read FProfitFarm write FProfitFarm;
+   property ProfitHistory: String; read FProfitHistory write FProfitHistory;
   end;
 
 Type
@@ -646,24 +653,24 @@ end;
 
 { TFarmItem }
 
-constructor TFarmItem.Create(AId: Integer;
-                          ACoords: TPoint; ATroops: TTroops;
-                          AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
-                          AProfitFarm, AProfitHistory: String;
-                          ACasualtiesInpRocPerAtack, AQuantity, FGeneration: Integer);
-begin
-  Inherited Create(AId);
-  //Inherited Create;
-    Coords := ACoords;
-    FTroops := ATroops;
-    Finterval := AInterval;
-    FIntervalRange := AIntervalRange;
-    FTypeAtaks := ATypeAtaks;
-    FProfitFarm := AProfitFarm;
-    FProfitHistory := AProfitHistory;
-    FCasualtiesInpRocPerAtack := ACasualtiesInpRocPerAtack;
-    FQuantity := AQuantity;
-    FGeneration := FGeneration;
-end;
+//constructor TFarmItem.Create(AId: Integer;
+//                          ACoords: TPoint; ATroops: TTroops;
+//                          AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
+//                          AProfitFarm, AProfitHistory: String;
+//                          ACasualtiesInpRocPerAtack, AQuantity, FGeneration: Integer);
+//begin
+//  Inherited Create(AId);
+//  Inherited Create;
+//    Coords := ACoords;
+//    FTroops := ATroops;
+//    Finterval := AInterval;
+//    FIntervalRange := AIntervalRange;
+//    FTypeAtaks := ATypeAtaks;
+//    FProfitFarm := AProfitFarm;
+//    FProfitHistory := AProfitHistory;
+//    FCasualtiesInpRocPerAtack := ACasualtiesInpRocPerAtack;
+//    FQuantity := AQuantity;
+//    FGeneration := FGeneration;
+//end;
 
 end.
