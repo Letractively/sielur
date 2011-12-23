@@ -2,10 +2,10 @@ object AddFarmForm: TAddFarmForm
   Left = 0
   Top = 0
   BiDiMode = bdLeftToRight
-  BorderStyle = bsNone
+  BorderStyle = bsToolWindow
   Caption = 'AddFarmForm'
-  ClientHeight = 540
-  ClientWidth = 509
+  ClientHeight = 533
+  ClientWidth = 513
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,20 +14,24 @@ object AddFarmForm: TAddFarmForm
   Font.Style = []
   OldCreateOrder = False
   ParentBiDiMode = False
+  Position = poDesktopCenter
   PixelsPerInch = 96
   TextHeight = 13
   object Mainpnl: TPanel
     Left = 0
     Top = 0
-    Width = 509
-    Height = 540
+    Width = 513
+    Height = 533
     Align = alClient
     TabOrder = 0
+    ExplicitWidth = 509
+    ExplicitHeight = 540
     object pnlTroops: TPanel
       Left = 8
       Top = 7
       Width = 491
       Height = 99
+      Align = alCustom
       TabOrder = 0
       object img1: TImage
         Left = 7
@@ -144,28 +148,28 @@ object AddFarmForm: TAddFarmForm
         Height = 21
         TabOrder = 6
       end
-      object edtT9: TEdit
+      object edtT8: TEdit
         Left = 288
         Top = 37
         Width = 65
         Height = 21
         TabOrder = 7
       end
-      object edtT10: TEdit
+      object edtT9: TEdit
         Left = 416
         Top = 8
         Width = 65
         Height = 21
         TabOrder = 8
       end
-      object edtT11: TEdit
+      object edtT10: TEdit
         Left = 416
         Top = 37
         Width = 65
         Height = 21
         TabOrder = 9
       end
-      object edtT12: TEdit
+      object edtT11: TEdit
         Left = 416
         Top = 66
         Width = 65
@@ -288,6 +292,7 @@ object AddFarmForm: TAddFarmForm
       Height = 25
       Caption = #1044#1086#1073#1072#1074#1080#1090#1100
       TabOrder = 5
+      OnClick = btnAddClick
     end
     object btnCansel: TButton
       Left = 8
@@ -296,6 +301,7 @@ object AddFarmForm: TAddFarmForm
       Height = 25
       Caption = #1054#1090#1084#1077#1085#1080#1090#1100
       TabOrder = 6
+      OnClick = btnCanselClick
     end
   end
 end
