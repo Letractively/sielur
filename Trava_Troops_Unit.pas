@@ -20,7 +20,7 @@ Type
    CavalryDef: Integer;
  end;
 
-Type TTRoops = object
+Type TTRoops = record
   FName: String;        //имя например легионер дубинщик итд.
   FAtack: Integer;      //атака
   FDefence: TDefence;   //защита как от пехоты так и от коней

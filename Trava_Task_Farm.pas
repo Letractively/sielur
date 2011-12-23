@@ -14,6 +14,9 @@ uses  Trava_class
 type
   {: —осто€ние элементов списка }
   TStateItem = (siNone, siDelete, siInsert, siUpdate);
+type
+  {: “ип атаки : ѕодкрепление , нападение , набег}
+  TTypeAtaks = (sireinforcement, siattack, siraid);
   {: Ѕазовый класс элемента списка }
   {: «арание делаю такую структуру ибо всетаки думаю прикрутить Ѕƒ!!!}
 type
@@ -94,12 +97,39 @@ type
     property Owner: TCustomItem read FOwner write FOwner;
   end;
 
+Type
+  TTroops = array [1..11] of integer;
 
 Type
-  TFarmItem = (TCustomItem)
+  TFarmItem = class(TCustomItem)
   //тут допишу седн€ или завтра
+    //координаты цели  Coords.X Coords.Y
+    Coords: TPoint;
+    FTroops: TTroops; //здесь подрузумиваетьс€ тип юнитов но их пока нету
+    Finterval: Integer; //период фарма
+    FIntervalRange: Integer; //разброс при фарме
+    FTypeAtaks: TTypeAtaks; // тип атаки , нападение набег подкрепление
+    FProfitFarm: String; //в дальнейшем будет учитыватьс€ прибыьл фарма
+    FProfitHistory: String; //истори€ фарма , пока думаю скоко ресов ут€нули скоко войск потер€ли
+    FCasualtiesInpRocPerAtack: Integer; //допустимые потери при атаке, тоесть если
+                                        //больше данного процента то преращаем туда бегать
+    FQuantity: integer;  //количество ходок , думаю при 1000 безконечтно бегать...
+    FGeneration: integer; //поколение , тоесть скок раз туда збегали.
+  public
+    constructor Create (AId: Integer; AEnable: Boolean; AName: string;
+                        AState: TStateItem; AOrderId: Integer;
+                        ACoords: TPoint; ATroops: TTroops;
+                        AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
+                        AProfitFarm, AProfitHistory: String; ACasualtiesInpRocPerAtack,
+                        AQuantity, FGeneration: Integer); overload;
+  end;
 
-type
+Type
+ TFarmList = class (TCustomItems)
+   public
+     procedure Add(AFarmItem: TFarmItem) overload;
+ end;
+{type
   //скопировал как шаблон но полностьюпеределывать
     TTask_Farm=class(TTask)
     private
@@ -112,7 +142,7 @@ type
       property Next_Build: string read get_Next_Build;
       property Set_ACF_BuildList: TSet_ACF_BuildList read fSet_ACF_BuildList write fSet_ACF_BuildList;
   end;
-
+ }
 
 implementation
 
@@ -603,6 +633,41 @@ begin
   if (AItem.State <> siInsert) and
      (AItem.State <> siDelete) then
     AItem.State := siUpdate;
+end;
+
+{ TFarmList }
+
+procedure TFarmList.Add(AFarmItem: TFarmItem);
+begin
+   inherited Add(TFarmItem.Create(AFarmItem.Id, AFarmItem.Enable, AFarmItem.Name,
+                 AFarmItem.GetState, AFarmItem.OrderId, AFarmItem.Coords,
+                 AFarmItem.FTroops, AFarmItem.Finterval, AFarmItem.FIntervalRange,
+                 AFarmItem.FTypeAtaks, AFarmItem.FProfitFarm, AFarmItem.FProfitHistory,
+                 AFarmItem.FCasualtiesInpRocPerAtack, AFarmItem.FQuantity,
+                 AFarmItem.FGeneration))
+end;
+
+{ TFarmItem }
+
+constructor TFarmItem.Create(AId: Integer; AEnable: Boolean; AName: string;
+                          AState: TStateItem ; AOrderId: Integer;
+                          ACoords: TPoint; ATroops: TTroops;
+                          AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
+                          AProfitFarm, AProfitHistory: String;
+                          ACasualtiesInpRocPerAtack, AQuantity, FGeneration: Integer);
+begin
+  Inherited Create(AId, AEnable, AName);
+  Inherited Create;
+    Coords := ACoords;
+    FTroops := ATroops;
+    Finterval := AInterval;
+    FIntervalRange := AIntervalRange;
+    FTypeAtaks := ATypeAtaks;
+    FProfitFarm := AProfitFarm;
+    FProfitHistory := AProfitHistory;
+    FCasualtiesInpRocPerAtack := ACasualtiesInpRocPerAtack;
+    FQuantity := AQuantity;
+    FGeneration := FGeneration;
 end;
 
 end.
