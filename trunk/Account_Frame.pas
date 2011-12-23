@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, SHDocVw, ExtCtrls, RzPanel, RzTabs, UContainer,
   Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage,
-     Trava_My_Const
+     Trava_My_Const, ComCtrls, RzListVw
 ;
 
 type
@@ -47,6 +47,10 @@ type
     BuildList: TEdit;
     Button1: TButton;
     Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
+    Button5: TButton;
+    RzListView1: TRzListView;
     procedure Building_PanelResize(Sender: TObject);
     procedure Building_GridDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
