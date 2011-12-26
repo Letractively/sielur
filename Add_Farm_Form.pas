@@ -68,6 +68,7 @@ procedure TAddFarmForm.btnAddClick(Sender: TObject);
 var
   I: Integer;
   tmpEdit: TEdit;
+  TP: TPoint;
 begin
   //Добовляем войска
   for I := 1 to 11 do
@@ -79,8 +80,11 @@ begin
       FFarmItem.FTroops[I] := StrToInt(tmpEdit.Text);
   end;
   //Добовляем координаты
-  FFarmItem.Coords.X := StrToInt(edtX.Text);
-  FFarmItem.Coords.Y := StrToInt(edtY.Text);
+  TP.X := StrToInt(edtX.Text);
+  TP.Y := StrToInt(edtY.Text);
+  //FFarmItem.Coords.X := StrToInt(edtX.Text);
+  //FFarmItem.Coords.Y := StrToInt(edtY.Text);
+  FFarmItem.Coords := TP;
   //Добовляем тип атаки
   if rgAtaks.ItemIndex = 0 then
     FFarmItem.FTypeAtaks := sireinforcement

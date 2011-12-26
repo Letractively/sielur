@@ -1,13 +1,14 @@
 unit Trava_Task_Farm;
 interface
-uses  Trava_class
-     ,MSHTML
+uses  //Trava_class
+     //,
+     MSHTML
      ,Classes
-     ,Trava_My_Const
-     ,UContainer
-     ,U_Utilites
-     ,Trava_Task
-     ,x_bot_utl
+    // ,Trava_My_Const
+    // ,UContainer
+    //,U_Utilites
+    // ,Trava_Task
+    // ,x_bot_utl
      ,Windows
      ,IniFiles;
 
@@ -116,17 +117,21 @@ Type
     FQuantity: integer;  //количество ходок , думаю при 1000 безконечтно бегать...
     FGeneration: integer; //поколение , тоесть скок раз туда збегали.
   public
-//    constructor Create (AId: Integer; ACoords: TPoint; ATroops: TTroops;
-//                        AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
-//                        AProfitFarm, AProfitHistory: String; ACasualtiesInpRocPerAtack,
-//                        AQuantity, FGeneration: Integer);
-   property Coords: TPoint; read FCoords write FCoords;
-   property Troops: TTroops; read FTroops write FTroops;
-   property Interval: Integer; read FInterval write FInterval;
-   property IntervalRange: Integer; read FIntervalRange write FIntervalRange;
-   property TypeAtaks: TTypeAtaks; read FTypeAtaks write FTypeAtaks;
-   property ProfitFarm: String; read FProfitFarm write FProfitFarm;
-   property ProfitHistory: String; read FProfitHistory write FProfitHistory;
+    constructor Create (AId: Integer; ACoords: TPoint; ATroops: TTroops;
+                        AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
+                        AProfitFarm, AProfitHistory: String; ACasualtiesInpRocPerAtack,
+                        AQuantity, FGeneration: Integer);
+   //constructor Create(AId: Integer;)
+   property Coords: TPoint read FCoords write FCoords;
+   property Troops: TTroops read FTroops write FTroops;
+   property Interval: Integer read FInterval write FInterval;
+   property IntervalRange: Integer read FIntervalRange write FIntervalRange;
+   property TypeAtaks: TTypeAtaks read FTypeAtaks write FTypeAtaks;
+   property ProfitFarm: String read FProfitFarm write FProfitFarm;
+   property ProfitHistory: String read FProfitHistory write FProfitHistory;
+   property CasualtiesInpRocPerAtack: Integer read FCasualtiesInpRocPerAtack write FCasualtiesInpRocPerAtack;
+   property Quantity: Integer read FQuantity write FQuantity;
+   property Generation: Integer read FGeneration write FGeneration;
   end;
 
 Type
@@ -653,24 +658,24 @@ end;
 
 { TFarmItem }
 
-//constructor TFarmItem.Create(AId: Integer;
-//                          ACoords: TPoint; ATroops: TTroops;
-//                          AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
-//                          AProfitFarm, AProfitHistory: String;
-//                          ACasualtiesInpRocPerAtack, AQuantity, FGeneration: Integer);
-//begin
-//  Inherited Create(AId);
-//  Inherited Create;
-//    Coords := ACoords;
-//    FTroops := ATroops;
-//    Finterval := AInterval;
-//    FIntervalRange := AIntervalRange;
-//    FTypeAtaks := ATypeAtaks;
-//    FProfitFarm := AProfitFarm;
-//    FProfitHistory := AProfitHistory;
-//    FCasualtiesInpRocPerAtack := ACasualtiesInpRocPerAtack;
-//    FQuantity := AQuantity;
-//    FGeneration := FGeneration;
-//end;
+constructor TFarmItem.Create(AId: Integer;
+                          ACoords: TPoint; ATroops: TTroops;
+                          AInterval, AIntervalRange: Integer; ATypeAtaks: TTypeAtaks;
+                          AProfitFarm, AProfitHistory: String;
+                          ACasualtiesInpRocPerAtack, AQuantity, FGeneration: Integer);
+begin
+  Inherited Create(AId);
+  Inherited Create;
+    Coords := ACoords;
+    FTroops := ATroops;
+    Finterval := AInterval;
+    FIntervalRange := AIntervalRange;
+    FTypeAtaks := ATypeAtaks;
+    FProfitFarm := AProfitFarm;
+    FProfitHistory := AProfitHistory;
+    FCasualtiesInpRocPerAtack := ACasualtiesInpRocPerAtack;
+    FQuantity := AQuantity;
+    FGeneration := FGeneration;
+end;
 
 end.

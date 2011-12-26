@@ -12,7 +12,8 @@ uses
   , PerlRegEx
   , U_Utilites
   , Dialogs
-  , Windows;
+  , Windows
+  , Trava_Task_Farm;
 
 type
 
@@ -68,6 +69,7 @@ type
     fprepare_dorf2: Tprepare_dorf;
     fprepare_vlist: Tprepare_dorf;
     FAccount: TAccount;
+    FFarmLists: TFarmList; //лист с списком листов и целей ...ка кто так.
     fBuildList: string;
     function get_ID: integer;
     function get_coord: string;
@@ -118,6 +120,7 @@ type
       fprepare_vlist;
     property BuildList: string read fBuildList write fBuildList;
     property Account: TAccount read FAccount write FAccount;
+    property FarmLists: TFarmList read FFarmLists write FFarmLists;
   end;
 
   TVills = class(TCollection)
@@ -383,6 +386,8 @@ end;
 constructor TVill.Create(Collection: TCollection);
 begin
   inherited;
+  //создаем пустой фарм лист
+  FFarmLists := TFarmList.Create;
 end;
 
 function TVill.GetBuilding(Index: integer): TBuilding;

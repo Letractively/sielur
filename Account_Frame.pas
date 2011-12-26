@@ -6,8 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, SHDocVw, ExtCtrls, RzPanel, RzTabs, UContainer,
   Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage,
-     Trava_My_Const, ComCtrls, RzListVw, Trava_Task_Farm, Add_Farm_Form
-;
+  Trava_My_Const, ComCtrls, RzListVw, Trava_Task_Farm, Add_Farm_Form;
 
 type
   TAccount_Form = class(TFrame)
@@ -45,12 +44,12 @@ type
     Building_ImageList: TImageList;
     VillCenterLabel: TLabel;
     BuildList: TEdit;
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
-    Button4: TButton;
-    Button5: TButton;
-    RzListView1: TRzListView;
+    StartConstruction: TButton;
+    StopConstruction: TButton;
+    AddFarmItem: TButton;
+    EditFarmItem: TButton;
+    DeleteFarmItem: TButton;
+    RzFarmListView: TRzListView;
     procedure Building_PanelResize(Sender: TObject);
     procedure Building_GridDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
@@ -63,9 +62,9 @@ type
       X, Y: Integer);
     procedure BuildListChange(Sender: TObject);
     procedure VillFieldImageDblClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
+    procedure StartConstructionClick(Sender: TObject);
+    procedure StopConstructionClick(Sender: TObject);
+    procedure AddFarmItemClick(Sender: TObject);
   private
     // ColBuilding_Grid: integer;
     // RowBuilding_Grid: integer;
@@ -172,25 +171,51 @@ begin
     Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).BuildList := BuildList.Text;
 end;
 
-procedure TAccount_Form.Button1Click(Sender: TObject);
+procedure TAccount_Form.StartConstructionClick(Sender: TObject);
 begin
   Account_data.Start_construction;
 end;
 
-procedure TAccount_Form.Button2Click(Sender: TObject);
+procedure TAccount_Form.StopConstructionClick(Sender: TObject);
 begin
   account_data.Stop_construction;
 end;
 
 
 
-procedure TAccount_Form.Button3Click(Sender: TObject);
+procedure TAccount_Form.AddFarmItemClick(Sender: TObject);
+const
+  defaultId = 1;
 var
-  FartItem: TFarmItem;
-  a: TTroops;
+  FarmItem: TFarmItem;
+  ATroops: TTroops;
   TP: TPoint;
+  AFarmForm: TAddFarmForm;
+  NextId: Integer;
+  LI: TlistItem;
 begin
-  FartItem := TFarmItem.Create(1,TP,a,50,20,siraid,'','',0,999,0);
+  //создаем временый елемент фарма с мусорными данными
+  FarmItem := TFarmItem.Create(1,TP,ATroops,0,0,siraid,'','',0,0,0);
+  try
+    AFarmForm := TAddFarmForm.Create(nil);
+    //передаем его в форму где ему присвоят актуальные параметры
+    AFarmForm.Show(FarmItem);
+    //получаем следующий айдишник списка фарма
+    NextId := Account_data.MyAccount.Derevni.VillById(
+                  Account_data.MyAccount.IdCurrentVill).FarmLists.LastId + 1;
+    FarmItem.Id := NextId;
+    //добовляем в список фарма фарм елемент с коректным айдишником и данными
+    Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).FarmLists.Add(FarmItem);
+    //отображаем на форме  токо часть для теста
+    LI := RzFarmListView.Items.Add;
+    LI.Caption := IntToStr(FarmItem.Id);
+    LI.SubItems.Add(IntToStr(FarmItem.FCoords.X));
+    LI.SubItems.Add(IntToStr(FarmItem.FCoords.Y));
+    LI.SubItems.Add(FarmItem.Name);
+  finally
+    LI.Free;
+    FarmItem.Free;
+  end;
 end;
 
 procedure TAccount_Form.DrawCurrentVill;
