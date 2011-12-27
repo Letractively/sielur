@@ -68,6 +68,12 @@ type
     procedure Start_construction;
     // ”даление  задачи стройки ферм и зданий из очередь задач
     procedure Stop_construction;
+    //ѕостановка задачи фарма в очередь задач
+    //„то фактически означает начать фарм и получит много много ресов и стать
+    //большим и злым  :)
+    procedure Start_farm;
+    //пока не знаю как его останавливать буду .. вдруг там с пару т≥с€ч целей ...
+    procedure Stop_farm;
 
     procedure set_AccountNode_StateIndex;
     property Log: TStringList read FLog write FLog;
@@ -527,7 +533,19 @@ begin
   end;
 end;
 
+procedure TAccount_Data.Start_farm;
+var
+  Vill: TVill;
+begin
+
+end;
+
 procedure TAccount_Data.Stop_construction;
+begin
+
+end;
+
+procedure TAccount_Data.Stop_farm;
 begin
 
 end;
