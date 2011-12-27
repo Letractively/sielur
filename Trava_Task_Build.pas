@@ -74,7 +74,7 @@ begin
   FID:=copy(Next_Build,1,pos('-',Next_Build)-1);
   GID:=copy(Next_Build,pos('-',Next_Build)+1);
 
-  if StrToInt(GID) <= 18 then
+  if StrToInt(GID) <= 5 then
     RC:=Vill.build_field(WBContainer,FId,Gid,Flog)
   else
     RC:=Vill.build_center(WBContainer,FId,Gid,Flog);
