@@ -40,9 +40,8 @@ type
     VillCenterImage: TImage;
     Panel1: TPanel;
     VillFieldImage: TImage;
-    VillFieldNameLabel: TLabel;
+    VillBuildNameLabel: TLabel;
     Building_ImageList: TImageList;
-    VillCenterLabel: TLabel;
     BuildList: TEdit;
     StartConstruction: TButton;
     StopConstruction: TButton;
@@ -65,6 +64,7 @@ type
     procedure StartConstructionClick(Sender: TObject);
     procedure StopConstructionClick(Sender: TObject);
     procedure AddFarmItemClick(Sender: TObject);
+    procedure VillCenterImageDblClick(Sender: TObject);
   private
     // ColBuilding_Grid: integer;
     // RowBuilding_Grid: integer;
@@ -78,7 +78,8 @@ type
     procedure DrawVillField(IdVill: Integer);
     procedure DrawVillCenter(IdVill: Integer);
     procedure DrawVill(IdVill: Integer);
-    function GetBuildingIndexOnMouseXY(X, Y: Integer): Integer;
+    function GetBuildingIndexOnMouseXY(Start_index,Stop_index: integer;X, Y: Integer): Integer;
+    procedure VillImageDblClick(Sender: TObject);
   public
     { Public declarations }
     property Account_data: TAccount_data read FAccount_data write  SetAccount_data;
@@ -328,8 +329,9 @@ begin
 
 end;
 
-function TAccount_Form.GetBuildingIndexOnMouseXY(X, Y: Integer): Integer;
-// Возвращает Индекс строения над которым стоит курсор мышки
+
+function TAccount_Form.GetBuildingIndexOnMouseXY(Start_index,Stop_index: integer;X, Y: Integer): Integer;
+// Возвращает Индекс строения (для полей) над которым стоит курсор мышки
 var
   IdCurrentVill: Integer;
   CurrentVill: TVill;
@@ -342,8 +344,7 @@ begin
   IdCurrentVill := Account_data.MyAccount.IdCurrentVill;
   CurrentVill := Account_data.MyAccount.Derevni.VillById(IdCurrentVill);
 
-  VillFieldNameLabel.Caption := '';
-  for CIndex := 1 to 18 do
+  for CIndex := Start_index to Stop_index do
   begin
     if ((X - Field_coord[1, CIndex]) * (X - Field_coord[1, CIndex]) +
         (Y - Field_coord[2, CIndex]) * (Y - Field_coord[2, CIndex])) < 400 then
@@ -355,10 +356,29 @@ begin
   BuildingIndex := Result;
 end;
 
+procedure TAccount_Form.VillCenterImageDblClick(Sender: TObject);
+begin
+  VillImageDblClick(Sender);
+end;
+
 procedure TAccount_Form.VillCenterImageMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
+var
+  IdCurrentVill: Integer;
+  CurrentVill: TVill;
+  CIndex: Integer;
 begin
-  //
+  if Account_data = nil then
+    exit;
+
+  VillBuildNameLabel.Caption := '';
+  CIndex := GetBuildingIndexOnMouseXY(19,40,X, Y);
+  if CIndex <= 0 then
+    exit;
+  IdCurrentVill := Account_data.MyAccount.IdCurrentVill;
+  CurrentVill := Account_data.MyAccount.Derevni.VillById(IdCurrentVill);
+  VillBuildNameLabel.Caption := CurrentVill.Item_Building[CIndex].name;
+
 end;
 
 procedure TAccount_Form.VillFieldImageClick(Sender: TObject);
@@ -368,6 +388,31 @@ begin
 end;
 
 procedure TAccount_Form.VillFieldImageDblClick(Sender: TObject);
+begin
+  VillImageDblClick(Sender);
+end;
+
+procedure TAccount_Form.VillFieldImageMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+var
+  IdCurrentVill: Integer;
+  CurrentVill: TVill;
+  CIndex: Integer;
+begin
+  if Account_data = nil then
+    exit;
+
+  VillBuildNameLabel.Caption := '';
+  CIndex := GetBuildingIndexOnMouseXY(1,18,X, Y);
+  if CIndex <= 0 then
+    exit;
+  IdCurrentVill := Account_data.MyAccount.IdCurrentVill;
+  CurrentVill := Account_data.MyAccount.Derevni.VillById(IdCurrentVill);
+  VillBuildNameLabel.Caption := CurrentVill.Item_Building[CIndex].name;
+
+end;
+
+procedure TAccount_Form.VillImageDblClick(Sender: TObject);
 var
   IdCurrentVill: Integer;
   CurrentVill: TVill;
@@ -383,41 +428,6 @@ begin
   BuildList.Text := BuildList.Text + IntToStr
     (CurrentVill.Item_Building[BuildingIndex].id) + '-' + IntToStr
     (CurrentVill.Item_Building[BuildingIndex].gid) + ';';
-
-end;
-
-procedure TAccount_Form.VillFieldImageMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-var
-  IdCurrentVill: Integer;
-  CurrentVill: TVill;
-  CIndex: Integer;
-begin
-  if Account_data = nil then
-    exit;
-
-  CIndex := GetBuildingIndexOnMouseXY(X, Y);
-  if CIndex <= 0 then
-    exit;
-  IdCurrentVill := Account_data.MyAccount.IdCurrentVill;
-  CurrentVill := Account_data.MyAccount.Derevni.VillById(IdCurrentVill);
-  VillFieldNameLabel.Caption := CurrentVill.Item_Building[CIndex].name;
-
-  {
-    IdCurrentVill := Account_data.MyAccount.IdCurrentVill;
-    CurrentVill := Account_data.MyAccount.Derevni.VillById(IdCurrentVill);
-
-    VillFieldNameLabel.Caption := '';
-    for CIndex := 1 to 18 do
-    begin
-    if ((X - Field_coord[1, CIndex]) * (X - Field_coord[1, CIndex]) + (Y -
-    Field_coord[2, CIndex]) * (Y - Field_coord[2, CIndex])) < 400 then
-    begin
-    VillFieldNameLabel.Caption := CurrentVill.Item_Building[CIndex].name;
-    break;
-    end;
-    end;
-  }
 end;
 
 procedure TAccount_Form.SetAccount_data(const Value: TAccount_data);

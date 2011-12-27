@@ -13,7 +13,9 @@ uses
   , U_Utilites
   , Dialogs
   , Windows
-  , Trava_Task_Farm;
+  , Trava_Task_Farm
+;
+
 
 type
 
@@ -259,17 +261,186 @@ end;
 
 function TVill.build_center(WBContainer: TWBContainer; const FId, GId: string;
   FLog: TStringList): TBuildReturn_Code;
+//  Постройка центра
+//   FId  - Id  поля на котором надо строить
+//   GId  - GId здания
+var
+  document: IHTMLDocument2;
+  url: string;
+
+  Tmp_Collection : IHTMLElementCollection;
+  field_Element :IHTMLElement;
+  ItemNumber: integer;
+  Contract_Element :IHTMLElement;
+  Button_Element :IHTMLElement;
+  DocumentHTML: IHTMLDocument2;
+
+  Build_Element :IHTMLElement;
+
 begin
-//
+  Result.Return_Code:=0;
+  Result.R1:=0;
+  Result.R2:=0;
+  Result.R3:=0;
+  Result.R4:=0;
+  Result.R5:=0;
+  Result.Duration:=0;
+  Result.Wait:=0;
+  Result.Text:='';
+
+
+  Flog.Add('============================');
+  Flog.Add('Будем строить  FId='+FID+' ('+GetBuilding(StrToInt(FID)).name+')');
+
+  DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;
+
+  document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
+  // Проверим стоим ли мы на DORF2 ????  и если нет то перейдем на неё
+  Flog.Add('Проверим стоим ли мы на DORF2 ????');
+  url := document.url;
+  if pos('dorf2.php',url) <= 0 then
+  begin
+    Flog.Add('Нет не стоим, будем на неё переходить');
+    document := FindAndClickHref(WBContainer, document,
+              Account.Connection_String + '/' + 'dorf2.php', 1);
+  end;
+
+  url := document.url;
+  if pos('dorf2.php',url) <= 0 then
+  begin
+    Flog.Add('Что-то не то; На DORF2 так и не перешли');
+    Result.Return_Code:=-1;  // showmessage('Что-то не то');
+    exit;
+  end;
+
+  // Итак стоим на дорф2  отпрепарируем её
+  (Account.Account_data as TAccount_Data).Clone_Document(DocumentHTML);
+  prepare_dorf2(document,DocumentHTML,Flog);
+
+  // Проверим GID  (так, на всякий)
+
+  if (Item_Building[StrToInt(FId)].gid <> 0) and (Item_Building[StrToInt(FId)].gid <> StrToInt(GId)) then
+  begin
+    Flog.Add('Несовпадение GID ');
+    Result.Return_Code:=-1;  // showmessage('Что-то не то');
+    exit;
+  end;
+
+  // Нажмем на ссылку
+  Flog.Add('Нажмем на ссылку'+'build.php?id='+FId);
+  document := FindAndClickHref(WBContainer, document,'build.php?id='+FId, 4);
+
+  Contract_Element:=nil;
+  if Item_Building[StrToInt(FId)].gid <> 0 then
+  begin  // Существующее здание
+    Flog.Add('Анализ <div id="contract"');   //<div id="contract" class="contractWrapper"><span class="none">Схованка максимального рівня</span></div>
+
+    Contract_Element := (Document as IHTMLDocument3).getElementById('contract');
+  end
+  else
+  begin  // Новостройка!!!!
+    //  Ищем нужное здание
+    Flog.Add('Анализ <div id="build"');   //<div id="build"
+
+    build_Element := (Document as IHTMLDocument3).getElementById('build');
+    Tmp_Collection := build_Element.children as IHTMLElementCollection;
+    // Нужная нам последовательность
+    //  h2
+    //  build_desc
+    //  contract
+    //  clear
+    //  hr
+    for ItemNumber := 0 to Tmp_Collection.Length - 1 do
+    begin
+      field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+      if Uppercase(field_Element.tagName) = 'H2' then
+      begin
+        field_Element := Tmp_Collection.item(ItemNumber+1, '') as IHTMLElement;
+        if Uppercase(field_Element.className) = 'BUILD_DESC' then
+        begin
+          field_Element :=(field_Element.children as IHTMLElementCollection).item(0, '') as IHTMLElement;
+          if Uppercase(field_Element.className) = 'BUILD_LOGO' then
+          begin
+            field_Element :=(field_Element.children as IHTMLElementCollection).item(0, '') as IHTMLElement;
+            if (Uppercase(copy(field_Element.className,1,8)) = 'BUILDING') and
+               (copy(field_Element.className,length(field_Element.className)-1) = GId) then
+            begin   // Это то что нам надо НАВЕРНОЕ!!!
+              field_Element := Tmp_Collection.item(ItemNumber+2, '') as IHTMLElement;
+              if Uppercase(field_Element.id) = 'CONTRACT' then
+                Contract_Element:=field_Element;
+            end;
+
+          end;
+
+        end;
+
+      end;
+    end;
+  end;
+
+
+  if Assigned(Contract_Element) then
+  begin  // НАшли Contract
+    Tmp_Collection := Contract_Element.children as IHTMLElementCollection;
+
+    Result:=Prepare_Contract(Tmp_Collection,FLog);
+    if Result.Return_Code = 0 then
+    begin
+      Flog.Add('Ищем кнопку');
+      Button_Element:=nil;
+      for ItemNumber := 0 to Tmp_Collection.Length - 1 do
+      begin
+        field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+        if Uppercase(field_Element.className) = 'CONTRACTLINK' then
+        begin
+          field_Element:=(field_Element.children as IHTMLElementCollection).item(0,'') as IHTMLElement;
+          if Uppercase(field_Element.tagName) = 'BUTTON' then
+          begin
+            Button_Element:=field_Element;
+            break;
+          end;
+        end;
+      end;
+
+
+      if Assigned(Button_Element) then
+      begin  //  кнопка есть  нажмем на неё
+        Flog.Add('Кнопку нашли;  Анализ');
+        Flog.Add('А теперь  Нажимаем на неё');
+        WBContainer.MyElementClick(field_Element);
+      end
+      else begin
+        Flog.Add('Кнопки нет; Ошибка в парсере и нашей логике');
+        Result.Return_Code:=-1;
+      end;
+    end;
+  end;
+
+
+  // Проверим стоим ли мы на DORF2 ????  и если нет то перейдем на неё
+  Flog.Add('Проверим стоим ли мы на DORF2 ????');
+  url := document.url;
+  if pos('dorf2.php',url) <= 0 then
+  begin
+    Flog.Add('Нет не стоим, будем на неё переходить');
+    document := FindAndClickHref(WBContainer, document,
+              Account.Connection_String + '/' + 'dorf1.php', 1);
+  end;
+
+  url := document.url;
+  if pos('dorf2.php',url) <= 0 then
+  begin
+    Flog.Add('Что-то не то; На DORF1 так и не перешли');
+    Result.Return_Code:=-3;  // showmessage('Что-то не то');
+    exit;
+  end;
+
 end;
 
 function TVill.build_field(WBContainer: TWBContainer; const FId, GId: string; FLog: TStringList):TBuildReturn_Code;
 //  Постройка ферм
 //   FId  - Id  поля на котором надо строить
 //   GId  - Не используется (введено для однообразного интерфейса с стройкой в центе)
-//   duration - если > 0 то Длительность запущенной стройки
-//                   < 0 время ожидания до доступности стройки
-//                   = 0 либо поднято на максимальный уровень, либо невозможно вычислить
 var
   document: IHTMLDocument2;
   url: string;
