@@ -49,6 +49,7 @@ type
     EditFarmItem: TButton;
     DeleteFarmItem: TButton;
     RzFarmListView: TRzListView;
+    StartTaskFarm: TButton;
     procedure Building_PanelResize(Sender: TObject);
     procedure Building_GridDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
@@ -63,6 +64,7 @@ type
     procedure VillFieldImageDblClick(Sender: TObject);
     procedure StartConstructionClick(Sender: TObject);
     procedure StopConstructionClick(Sender: TObject);
+    //добовляем новую цель
     procedure AddFarmItemClick(Sender: TObject);
     procedure VillCenterImageDblClick(Sender: TObject);
   private
@@ -209,6 +211,7 @@ begin
     Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).FarmLists.Add(FarmItem);
     //отображаем на форме  токо часть для теста
     LI := RzFarmListView.Items.Add;
+    //LI.Index := FarmItem.Id;
     LI.Caption := IntToStr(FarmItem.Id);
     LI.SubItems.Add(IntToStr(FarmItem.FCoords.X));
     LI.SubItems.Add(IntToStr(FarmItem.FCoords.Y));

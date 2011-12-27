@@ -1,8 +1,7 @@
 unit Trava_Task_Farm;
 interface
 uses  //Trava_class
-     //,
-     MSHTML
+      MSHTML
      ,Classes
     // ,Trava_My_Const
     // ,UContainer
@@ -139,20 +138,20 @@ Type
    public
      procedure Add(AFarmItem: TFarmItem) overload;
  end;
-{type
-  //скопировал как шаблон но полностьюпеределывать
-    TTask_Farm=class(TTask)
-    private
-      function GetFarmList: TFarmList;
-    protected
-    public
-      constructor Create; override;
-      property FarmList : string read GetFarmList write GetFarmList;
-      procedure Execute(WBContainer: TWBContainer;   FLog: TStringList); override;
-      property Next_Build: string read get_Next_Build;
-      property Set_ACF_BuildList: TSet_ACF_BuildList read fSet_ACF_BuildList write fSet_ACF_BuildList;
-  end;
- }
+//Type
+//  //скопировал как шаблон но полностьюпеределывать
+//    TTask_Farm=class(TTask)
+//    private
+//      function GetFarmList: TFarmList;
+//    protected
+//    public
+//      constructor Create; override;
+//      property FarmList : string read GetFarmList write GetFarmList;
+//      procedure Execute(WBContainer: TWBContainer;   FLog: TStringList); override;
+//      property Next_Build: string read get_Next_Build;
+//      property Set_ACF_BuildList: TSet_ACF_BuildList read fSet_ACF_BuildList write fSet_ACF_BuildList;
+//  end;
+// }
 
 implementation
 

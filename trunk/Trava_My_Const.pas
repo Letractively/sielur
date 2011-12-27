@@ -17,8 +17,8 @@ type
               //
               //
               //
-
-  TTask_type = (ttUnknown, ttBuild, ttSendRes);   // Тоже для примера, потом разберемся
+  // Тоже для примера, потом разберемся, добавил трупиков :)
+  TTask_type = (ttUnknown, ttBuild, ttSendRes, ttSendTroops);
 
   TBuildReturn_Code=Record
     Return_Code: integer;       // <0   - Фигня какаято. Ошибка в парсере
