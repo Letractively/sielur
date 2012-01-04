@@ -2,9 +2,19 @@
 <BorlandProject>
 	<Transactions>
     <Transaction>1899.12.30 00:00:00.000.921,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\PerlRegEx.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.437,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.453,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Add_Farm_Form.dfm=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.906,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.437,C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\U_Utilites.pas=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas</Transaction>
-    <Transaction>2011.11.24 15:00:44.906,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
-    <Transaction>2011.11.24 15:02:08.625,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\UPrePare_Profile.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.453,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Add_Farm_Form.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.625,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\UPrePare_Profile.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.109,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.421,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Trava_Troops_Unit.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.609,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Trava_Task_Farm.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.796,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.437,=C:\Documents and Settings\User\Рабочий стол\Sielur_2.0.0.2\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.875,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.pas</Transaction>
+    <Transaction>2012.01.03 15:53:08.000,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Trava_Task_Farm_Item.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Trava_Task_Farm.pas</Transaction>
+    <Transaction>2012.01.03 15:58:14.500,=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.pas</Transaction>
+    <Transaction>2012.01.03 15:58:45.296,C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Travian_Task_Farm.pas=C:\Documents and Settings\Exit\Рабочий стол\x-2.0.0.1\sielur\Unit2.pas</Transaction>
   </Transactions>
 </BorlandProject>

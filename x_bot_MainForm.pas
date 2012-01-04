@@ -37,6 +37,8 @@ uses
   , ImgList
   , Trava_task
   , U_Utilites
+  , pcre
+  , PerlRegEx
   ;
 
 type

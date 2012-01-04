@@ -35,7 +35,7 @@ implementation
 constructor TTask_Build.Create;
 begin
   inherited;
-  Task_type:=ttBuild;
+  Task_type := ttBuild;
 
 end;
 
