@@ -4,11 +4,11 @@ interface
 
 uses Trava_class
    , MSHTML
-   ,Classes
-   ,Trava_My_Const
+   , Classes
+   , Trava_My_Const
    , UContainer
-  , U_Utilites
-  ,x_bot_utl   ;
+   , U_Utilites
+   , x_bot_utl   ;
 
 
 
@@ -222,46 +222,44 @@ var TaskNumber: integer;
   IndexFirstTaskDelete: integer;
   lastPosition: integer;
 begin
-
-
-// Сортируем по дате старта задания с учетом его статуса
-sw:=true;
-lastPosition:=Count - 1;
-while(sw) do
-begin
-  sw:=false;
-  for TaskNumber := 0 to lastPosition-1 do
+  // Сортируем по дате старта задания с учетом его статуса
+  sw:=true;
+  lastPosition:=Count - 1;
+  while(sw) do
   begin
-    if task_array[TaskNumber+1].Status <> tsDelete then   // Следующее не на удалении
-      if (task_array[TaskNumber].Status = tsDelete) or    // Текущее на удалении или
-         (task_array[TaskNumber].TimeCheck > task_array[TaskNumber+1].TimeCheck)  // его время > времени следующего
-      then begin  // Надо менять местами
-        sw:=true;
-        Task:=task_array[TaskNumber];
-        task_array[TaskNumber]:=task_array[TaskNumber+1];
-        task_array[TaskNumber+1]:=Task;
-      end;
+    sw:=false;
+    for TaskNumber := 0 to lastPosition-1 do
+    begin
+      if task_array[TaskNumber+1].Status <> tsDelete then   // Следующее не на удалении
+        if (task_array[TaskNumber].Status = tsDelete) or    // Текущее на удалении или
+           (task_array[TaskNumber].TimeCheck > task_array[TaskNumber+1].TimeCheck)  // его время > времени следующего
+        then begin  // Надо менять местами
+          sw:=true;
+          Task:=task_array[TaskNumber];
+          task_array[TaskNumber]:=task_array[TaskNumber+1];
+          task_array[TaskNumber+1]:=Task;
+        end;
+    end;
+    DEC(LastPosition);
   end;
-  DEC(LastPosition);
-end;
 
-// Ищем позицию с удаленным заданием
-IndexFirstTaskDelete:=-1;
-for TaskNumber := Count - 1 downto 0 do
-begin
-  if task_array[TaskNumber].Status = tsDelete then IndexFirstTaskDelete:=TaskNumber
-  else break;
-end;
+  // Ищем позицию с удаленным заданием
+  IndexFirstTaskDelete:=-1;
+  for TaskNumber := Count - 1 downto 0 do
+  begin
+    if task_array[TaskNumber].Status = tsDelete then IndexFirstTaskDelete:=TaskNumber
+    else break;
+  end;
 
 
-if IndexFirstTaskDelete > -1 then
-begin
-  // Осводим память
-  for TaskNumber := IndexFirstTaskDelete to Count - 1 do task_array[TaskNumber].Free;
+  if IndexFirstTaskDelete > -1 then
+  begin
+    // Осводим память
+    for TaskNumber := IndexFirstTaskDelete to Count - 1 do task_array[TaskNumber].Free;
 
-  // Удалим из массива
-  SetLength(task_array, IndexFirstTaskDelete);
-end;
+    // Удалим из массива
+    SetLength(task_array, IndexFirstTaskDelete);
+  end;
 
 end;
 

@@ -94,6 +94,8 @@ type
     // Build
     function build_field(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     function build_center(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
+    //Farm
+    function Send_Troop()
     // Vlist
     procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);

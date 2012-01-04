@@ -6,7 +6,9 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, OleCtrls, SHDocVw, ExtCtrls, RzPanel, RzTabs, UContainer,
   Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage,
-  Trava_My_Const, ComCtrls, RzListVw, Trava_Task_Farm, Add_Farm_Form;
+  Trava_My_Const, ComCtrls, RzListVw,
+  Trava_Task_Farm,
+  Add_Farm_Form;
 
 type
   TAccount_Form = class(TFrame)
