@@ -16,8 +16,11 @@ type
     TTask_Build=class(TTask)
     private
     fSet_ACF_BuildList: TSet_ACF_BuildList;
+    //получаем следующее в очереди что надо строить
     function get_Next_Build: string;
+    //получаем полный перечень елементов которые надо строить
     function GetBuildList: string;
+    //задает лист строительства
     procedure SetBuildList(const Value: string);
     protected
     public
@@ -35,6 +38,7 @@ implementation
 constructor TTask_Build.Create;
 begin
   inherited;
+  //указываем тип задачи
   Task_type := ttBuild;
 
 end;
