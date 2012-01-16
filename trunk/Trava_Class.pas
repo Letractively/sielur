@@ -95,7 +95,7 @@ type
     function build_field(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     function build_center(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     //Farm
-    //function Send_Troop()
+    function Send_Troop(WBContainer: TWBContainer; AFamrItem: TFarmItem; FLog: TStringList): TFarmReturn_Code;
     // Vlist
     procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
@@ -992,6 +992,17 @@ begin
     end; // if Assigned(LI_List)
   end;  // if Assigned(UL_List)
 
+end;
+
+function TVill.Send_Troop(WBContainer: TWBContainer; AFamrItem: TFarmItem;
+  FLog: TStringList): TFarmReturn_Code;
+begin
+  //Обнуляем резалт
+  Result.Retutn_Code := 0;
+  Result.TargetNameVil := '';
+  Result.TargetNamePlayer := '';
+  Result.TargetNameAli := '';
+  Result.TravelTime := 0;
 end;
 
 procedure TVill.SetGidForId40(AValue: integer);
