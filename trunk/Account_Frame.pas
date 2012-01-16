@@ -210,7 +210,7 @@ begin
                   Account_data.MyAccount.IdCurrentVill).FarmLists.LastId + 1;
     FarmItem.Id := NextId;
     //добовляем в список фарма фарм елемент с коректным айдишником и данными
-    Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).FarmLists.Add(FarmItem);
+    //Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).FarmLists.Add(FarmItem);
     //отображаем на форме  токо часть для теста
     LI := RzFarmListView.Items.Add;
     //LI.Index := FarmItem.Id;
