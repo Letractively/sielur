@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, OleCtrls, SHDocVw, ExtCtrls, RzPanel, RzTabs, UContainer,
   Account_data, Trava_Class, RzSplit, Grids, RzGrids, ImgList, pngimage,
   Trava_My_Const, ComCtrls, RzListVw,
-  Trava_Task_Farm,
+  Trava_Task_Farm_Item,
   Add_Farm_Form;
 
 type
@@ -210,7 +210,7 @@ begin
                   Account_data.MyAccount.IdCurrentVill).FarmLists.LastId + 1;
     FarmItem.Id := NextId;
     //добовляем в список фарма фарм елемент с коректным айдишником и данными
-    //Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).FarmLists.Add(FarmItem);
+    Account_data.MyAccount.Derevni.VillById(Account_data.MyAccount.IdCurrentVill).FarmLists.AddFarmItem(FarmItem);
     //отображаем на форме  токо часть для теста
     LI := RzFarmListView.Items.Add;
     //LI.Index := FarmItem.Id;
@@ -219,7 +219,7 @@ begin
     LI.SubItems.Add(IntToStr(FarmItem.FCoords.Y));
     LI.SubItems.Add(FarmItem.Name);
   finally
-    LI.Free;
+    //LI.Free;
     FarmItem.Free;
   end;
 end;

@@ -131,7 +131,7 @@ Type
 Type
  TFarmList = class (TCustomItems)
    public
-     procedure Add(AFarmItem: TFarmItem) overload;
+     function AddFarmItem(AFarmItem: TFarmItem): TFarmItem;
  end;
 //Type
 //  //скопировал как шаблон но полностьюпеределывать
@@ -641,13 +641,14 @@ end;
 
 { TFarmList }
 
-procedure TFarmList.Add(AFarmItem: TFarmItem);
+function TFarmList.AddFarmItem(AFarmItem: TFarmItem): TFarmItem;
 begin
-   inherited Add(TFarmItem.Create(AFarmItem.Id, AFarmItem.Coords,
+  Result := TFarmItem.Create(AFarmItem.Id, AFarmItem.Coords,
                  AFarmItem.FTroops, AFarmItem.Finterval, AFarmItem.FIntervalRange,
                  AFarmItem.FTypeAtaks, AFarmItem.FProfitFarm, AFarmItem.FProfitHistory,
                  AFarmItem.FCasualtiesInpRocPerAtack, AFarmItem.FQuantity,
-                 AFarmItem.FGeneration))
+                 AFarmItem.FGeneration);
+  Add(Result);
 end;
 
 { TFarmItem }

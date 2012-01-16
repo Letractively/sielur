@@ -19,8 +19,8 @@ uses
   Trava_Task_Build in 'Trava_Task_Build.pas',
   Trava_Task_Farm_Item in 'Trava_Task_Farm_Item.pas',
   Add_Farm_Form in 'Add_Farm_Form.pas' {AddFarmForm},
-  Trava_Troops_Unit in 'Trava_Troops_Unit.pas',
-  Travian_Task_Farm in 'Travian_Task_Farm.pas';
+  Trava_Troops_Unit in 'Trava_Troops_Unit.pas' {/Travian_Task_Farm in 'Travian_Task_Farm.pas';},
+  Trava_Task_Farm in 'Trava_Task_Farm.pas';
 
 {$R *.res}
 

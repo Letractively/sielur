@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls, Trava_Task_Farm;
+  Dialogs, ExtCtrls, StdCtrls, Trava_Task_Farm_Item;
 
 type
   TAddFarmForm = class(TForm)
