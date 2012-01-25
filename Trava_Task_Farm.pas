@@ -37,12 +37,14 @@ begin
   inherited;
   Task_type := ttSendTroops;
   //загрузили фарм лист
-  GetFarmList(FFarmList);
+  //GetFarmList(FFarmList);
 end;
 
 procedure TTask_Farm.Execute(WBContainer: TWBContainer; FLog: TStringList);
 var
     document : IHTMLDocument2;
+    FRC: TFarmReturn_Code;
+    FarmItem: TFarmItem;
 begin
   inherited;
   if Status = tsRun then
@@ -58,7 +60,8 @@ begin
       document := FindAndClickHref(WBContainer, document, '?newdid=' + Vill.NewDID, 4);
     end;
   end;
-
+  FarmItem := Vill.FarmLists.GetItemById(1) as TFarmItem;
+  FRC := Vill.Send_Troop(WBContainer, FarmItem, FLog);
 end;
 
 procedure TTask_Farm.GetFarmList(var AFarmList: TFarmList);

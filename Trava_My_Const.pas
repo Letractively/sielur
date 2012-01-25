@@ -36,7 +36,7 @@ type
     Text: string;
   End;
   TFarmReturn_Code = record
-    Retutn_Code: Integer;   // <0   - Фигня какаято. Ошибка в парсере
+    Return_Code: Integer;   // <0   - Фигня какаято. Ошибка в парсере
                             // =1   - не хватает войск
                             // =2   - цели не существует
                             // =3   - цель в баньке париться
