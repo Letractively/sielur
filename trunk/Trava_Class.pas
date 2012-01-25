@@ -95,7 +95,7 @@ type
     function build_field(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     function build_center(WBContainer: TWBContainer; const FId:string; const GId: string; FLog: TStringList):TBuildReturn_Code;
     //Farm
-    function Send_Troop(WBContainer: TWBContainer; AFamrItem: TFarmItem; FLog: TStringList): TFarmReturn_Code;
+    function Send_Troop(WBContainer: TWBContainer; AFarmItem: TFarmItem; FLog: TStringList): TFarmReturn_Code;
     // Vlist
     procedure prepare_Vlist_T36(Document: IHTMLDocument2; DocumentHTML:
       IHTMLDocument2; FLog: TStringList);
@@ -260,6 +260,86 @@ begin
   else
     inherited;
 end;
+
+function TVill.Send_Troop(WBContainer: TWBContainer; AFarmItem: TFarmItem;
+  FLog: TStringList): TFarmReturn_Code;
+var
+  document: IHTMLDocument2;
+  DocumentHTML: IHTMLDocument2;
+  Build_Element: IHTMLElement;
+  field_Element :IHTMLElement;
+  Tmp_Collection : IHTMLElementCollection;
+  Container_Collection: IHTMLElementCollection;
+  TabShit_Element :IHTMLElement;
+  url: string;
+  ItemNumber, TabshitNumber: Integer;
+begin
+  //Обнуляем резалт
+  Result.Return_Code := 0;
+  Result.TargetNameVil := '';
+  Result.TargetNamePlayer := '';
+  Result.TargetNameAli := '';
+  Result.TravelTime := 0;
+  Build_Element := nil;
+  FLog.Add('Будем отсылать войско по координатам :(' + IntToStr(AFarmItem.FCoords.X) +
+    '|' + IntToStr(AFarmItem.Coords.Y) + ')');
+  DocumentHTML := coHTMLDocument.Create as IHTMLDocument2;
+  document:=WBContainer.HostedBrowser.Document as IHTMLDocument2;
+  // Проверим стоим ли мы на DORF2 ????  и если нет то перейдем на неё
+  if (copy(url, length(url) - 8) <> 'dorf2.php') then
+  begin
+    Flog.Add('Нет не стоим, будем на неё переходить');
+    document := FindAndClickHref(WBContainer, document,
+              Account.Connection_String + '/' + 'dorf2.php', 1);
+  end;
+  url := document.url;
+  if (copy(url, length(url) - 8) <> 'dorf2.php') then
+  begin
+    Flog.Add('Что-то не то; На DORF2 так и не перешли');
+    Result.Return_Code:=-1;  // showmessage('Что-то не то');
+    exit;
+  end;
+  //теперь среди всех посроек исчем пункт збора  у нее ГИД=39
+  Flog.Add('Жмем на пункт збора');
+  document := FindAndClickHref(WBContainer, document,
+            Account.Connection_String + '/' + 'build.php?id=39', 1);
+  Flog.Add('Анализ ПЗ. Пока поверхосный, токо смотрим пункт збора это или нет');
+  //Достаточно если есть <div id="build" class="gid16"> в полученой странице , значит открыли пункт збора
+  //Вдальнейшем будет функа которая будет парсить всю инфу о пунке збора, особенно
+  //о наличии войск и кому пренадлежат + скоко ресов в данный момент несут восйка.
+  Build_Element := (Document as IHTMLDocument3).getElementById('build');
+  if Assigned(Build_Element) then
+  begin     //нашли пункт збора и место где кнопочки на отправку
+    Flog.Add('Стоип внутри пункта збора, ищем кнопку отправит войска.');
+    Tmp_Collection := Build_Element.children as IHTMLElementCollection;
+    TabShit_Element := nil;
+    for ItemNumber := 0 to Tmp_Collection.Length - 1 do
+    begin
+      field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+      if Uppercase(field_Element.className) = 'CONTENTNAVI TABNAVI' then
+      begin
+        //нашли панельку с кнопками на Пс , теперь найдем 2 кнопку(закладку) и тыцнем на нее
+        Container_Collection := field_Element.children as IHTMLElementCollection;
+        for TabshitNumber := 0 to Container_Collection.length - 1 do //по идеи 4 леемента
+        // 2 елемент отправка войск
+        begin
+          if TabshitNumber = 1 then
+          begin
+            field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+            //дальше мне лень что копаться ... думаю зря все это сразу капал жмем на елемент и не мучаемся :)
+            Flog.Add('Кнопку нашли;  Отправить войска');
+            Flog.Add('А теперь  Нажимаем на неё');
+            //даный такой изврат нужен был для того чтоб 100 % тыцнуть на кнопку , может дальше все это уберем
+            WBContainer.MyElementClick(field_Element);
+            document := WBContainer.HostedBrowser.Document as IHTMLDocument2;
+          end
+        end;
+      end;
+    end;
+  end;
+  //Щас мы по идеи должны тостья на ,,,/a2b.php ///
+end;
+
 
 function TVill.build_center(WBContainer: TWBContainer; const FId, GId: string;
   FLog: TStringList): TBuildReturn_Code;
@@ -994,16 +1074,6 @@ begin
 
 end;
 
-function TVill.Send_Troop(WBContainer: TWBContainer; AFamrItem: TFarmItem;
-  FLog: TStringList): TFarmReturn_Code;
-begin
-  //Обнуляем резалт
-  Result.Retutn_Code := 0;
-  Result.TargetNameVil := '';
-  Result.TargetNamePlayer := '';
-  Result.TargetNameAli := '';
-  Result.TravelTime := 0;
-end;
 
 procedure TVill.SetGidForId40(AValue: integer);
 begin

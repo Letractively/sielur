@@ -25,12 +25,13 @@ uses
   , Windows
   , Variants
   , TypInfo
-  ,urlmon
-  ,wininet
+  , urlmon
+  , wininet
   , ExtCtrls
-   ,Trava_My_Const
+  , Trava_My_Const
   , Trava_Task
-  ,Trava_Task_Build
+  , Trava_Task_Build
+  , Trava_Task_Farm
   ;
 
 type
@@ -536,8 +537,29 @@ end;
 procedure TAccount_Data.Start_farm;
 var
   Vill: TVill;
+  Task_Farm: TTask_Farm;
 begin
+  //  Определимся с текущей деревней
+  Vill:=MyAccount.Derevni.VillById(MyAccount.IdCurrentVill);
+  // Посмотрим а есть ли что-то в очереди
+  if Vill.FarmLists.Count > 0 then
+  begin  // Да очередь не пустая значит можно!!!!!
+    // Сначала остановим обработку очереди задач
+    Task_Work_Timer.Enabled:=false;
 
+
+    Task_Farm:=TTask_Farm.Create;  // Создали задачу стройки
+    Task_Farm.Task_type:=ttSendTroops;   // Указали явно тип задачи
+    Task_Farm.Vill:=Vill;           // Указали Деревню
+    Task_Farm.BeginWork:=MyAccount.TravianTime + SecondsTime(2); // Текущее время + 2 секунды
+    Task_Farm.StopWork:=MyAccount.TravianTime + 1000;  // Текущее время + далекое будущее
+    Task_Farm.TimeCheck:=MyAccount.TravianTime + SecondsTime(3); // Текущее время + 3 секунды
+    Task_Farm.Status:=tsReady;
+    Task_Farm.FarmList := Vill.FarmLists;
+    Task_queue.AddTask(Task_Farm);
+    // Теперь можно запустить обработку очереди задач
+    Task_Work_Timer.Enabled:=true;
+  end;
 end;
 
 procedure TAccount_Data.Stop_construction;

@@ -69,6 +69,7 @@ type
     //добовляем новую цель
     procedure AddFarmItemClick(Sender: TObject);
     procedure VillCenterImageDblClick(Sender: TObject);
+    procedure StartTaskFarmClick(Sender: TObject);
   private
     // ColBuilding_Grid: integer;
     // RowBuilding_Grid: integer;
@@ -179,6 +180,11 @@ end;
 procedure TAccount_Form.StartConstructionClick(Sender: TObject);
 begin
   Account_data.Start_construction;
+end;
+
+procedure TAccount_Form.StartTaskFarmClick(Sender: TObject);
+begin
+  Account_data.Start_farm;
 end;
 
 procedure TAccount_Form.StopConstructionClick(Sender: TObject);
