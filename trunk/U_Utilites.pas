@@ -31,6 +31,8 @@ function WB_GetHTMLCode(WBContainer: TWBContainer; var ACode: string): Boolean;
 //Получает исходный код странички из екземпляра IHTMLDocument2
 function Doc_GetHTMLCode(Adocument: IHTMLDocument2): string;
 function bild_lvl(s: string): integer;
+//конвертирует WideString в String
+function WideStringToString(const ws: WideString; codePage: Word): AnsiString;
 
 implementation
 
@@ -379,6 +381,25 @@ begin
     if Result.Return_Code = 0 then Result.Return_Code:=4;
   end;
 end;
+
+function WideStringToString(const ws: WideString; codePage: Word): AnsiString;
+var
+  l: integer;
+begin
+  if ws = '' then
+    Result := ''
+  else
+  begin
+    l := WideCharToMultiByte(codePage,
+      WC_COMPOSITECHECK or WC_DISCARDNS or WC_SEPCHARS or WC_DEFAULTCHAR,
+      @ws[1], -1, nil, 0, nil, nil);
+    SetLength(Result, l - 1);
+    if l > 1 then
+      WideCharToMultiByte(codePage,
+        WC_COMPOSITECHECK or WC_DISCARDNS or WC_SEPCHARS or WC_DEFAULTCHAR,
+        @ws[1], -1, @Result[1], l - 1, nil, nil);
+  end;
+end; { WideStringToString }
 
 end.
 
