@@ -272,7 +272,7 @@ var
   Container_Collection: IHTMLElementCollection;
   TabShit_Element :IHTMLElement;
   url: string;
-  ItemNumber, TabshitNumber: Integer;
+  ItemNumber, TabshitNumber, I: Integer;
 begin
   //Обнуляем резалт
   Result.Return_Code := 0;
@@ -325,13 +325,32 @@ begin
         begin
           if TabshitNumber = 1 then
           begin
-            field_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLElement;
+            field_Element := Container_Collection.item(ItemNumber, '') as IHTMLElement;
             //дальше мне лень что копаться ... думаю зря все это сразу капал жмем на елемент и не мучаемся :)
+            {<div title="Відправити військо" class="container normal">
+				     <div class="background-start">&nbsp;</div>
+				   	 <div class="background-end">&nbsp;</div>
+				  	 <div class="content"><a href="a2b.php"><span class="tabItem">Відправити військо</span></a></div>
+			    	 </div>
+            }
             Flog.Add('Кнопку нашли;  Отправить войска');
-            Flog.Add('А теперь  Нажимаем на неё');
-            //даный такой изврат нужен был для того чтоб 100 % тыцнуть на кнопку , может дальше все это уберем
-            WBContainer.MyElementClick(field_Element);
-            document := WBContainer.HostedBrowser.Document as IHTMLDocument2;
+            //теперь найдем div с хреф сылкой и тыцнем по ней ..
+            Tmp_Collection := field_Element.children as IHTMLElementCollection;
+            for I := 0 to Tmp_Collection.length - 1 do
+            begin
+              field_Element := Tmp_Collection.item(I , '') as IHTMLElement;
+              Showmessage(field_Element.className);
+              if Uppercase(field_Element.className) = 'CONTENT' then
+              begin
+                Flog.Add('А теперь  Нажимаем на неё');
+                //даный такой изврат нужен был для того чтоб 100 % тыцнуть на кнопку , может дальше все это уберем
+                Showmessage(field_Element.className);
+                Showmessage(WideStringToString(field_Element.toString, CP_UTF8));
+                field_Element.click;
+                WBContainer.MyElementClick(field_Element);
+                document := WBContainer.HostedBrowser.Document as IHTMLDocument2;
+              end
+            end;
           end
         end;
       end;
@@ -848,7 +867,8 @@ var
   ItemNumber: integer;
   ItemBuild: integer;
   curentIDBuild: Integer;
-  TmpStringBuild: string;
+  TmpStringBuild,Tmp_alt: string;
+  PosPoziton: Integer;
 //  A : TStringList;
 begin
   // Занулим gid полей и уровни
@@ -872,7 +892,11 @@ begin
   //и вытягиваем клас потсройки , просто порядок один и тотже , но для проверки будем сравнивать названия построек.
   //P.S. Пунк збора можно построить токо на своем месте id=39, все остальное и ГЗ может быть где угодно , а да и изгородь
   //id=40 , вот собственно все.
-   Tmp_Collection := (field_Element.children as ihtmlelementcollection);
+  // 27.04.2012 После обновления клиента игры, появились новые визуальные прибамбасы, тоесть щас при наведении мышки на постройку
+  //указывает сколько ресурсов необходимо лдя этой постройки + имя...
+  //по этому старый метод Building[curentIDBuild].name := Area_Element.alt; не сработает...
+  //будем вытащитьвать по другому.
+  Tmp_Collection := (field_Element.children as ihtmlelementcollection);
   for ItemNumber := 0 to 21 do
   begin
     Area_Element := Tmp_Collection.item(ItemNumber, '') as IHTMLAreaElement;
@@ -881,7 +905,16 @@ begin
                                  )
                             );
     Building[curentIDBuild].Id := curentIDBuild;
-    Building[curentIDBuild].name := Area_Element.alt;
+    //так вытягиваеться примерно следующая конструкция :
+    //'Рынок <span class="level">Уровень 9</span>||Расходы на строительство до уровня 10:<br />'#$A#9
+    //Копируем от начала до @Уровень 9</span>@ вырезаем имя и уровень , по другому ХЗ
+    //M&M проверит
+    Tmp_alt := Area_Element.alt;
+    PosPoziton := Pos('</span>', Tmp_alt);
+    Tmp_alt := Copy(Tmp_alt, 0, PosPoziton - 1);
+    Building[curentIDBuild].name := Copy(Tmp_alt, 0, Pos('<span class="level">', Tmp_alt) - 1) +
+          Copy(Tmp_alt, Pos('<span class="level">', Tmp_alt) + Length('<span class="level">'),
+                 Length(Tmp_alt) - Pos('<span class="level">', Tmp_alt) + Length('<span class="level">'));
       // Уроани построек вытащим позже при определении ГИД
   end;
 

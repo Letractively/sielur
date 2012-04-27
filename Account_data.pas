@@ -450,6 +450,7 @@ begin
 
 
   fWebBrowser := TWebBrowser.Create(AOwner);
+  fWebBrowser.Silent := True;
   TWinControl(fWebBrowser).Parent := (AOwner as TWinControl);
   fWebBrowser.Align := alClient;
   fWebBrowser.OnDocumentComplete := WebBrowserDocumentComplete;
