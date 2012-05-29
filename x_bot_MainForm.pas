@@ -144,7 +144,6 @@ begin
         begin
           Account_Data.Set_ACF_BuildList:=Set_ACF_BuildList;
           ACF.Account_data := Account_Data;
-
         end;
       end;
     end;

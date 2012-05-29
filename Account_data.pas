@@ -442,6 +442,7 @@ begin
   fMyAccount := TAccount.Create;
   fMyAccount.Account_data:=self;
 
+  //крутиться тайер на который цыпляем оброботку задач из списка всех задачь
   fTask_queue := TTask_queue.Create;
   fTask_Work_Timer := TTimer.Create(nil);
   fTask_Work_Timer.Enabled:=false;
