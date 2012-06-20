@@ -10,6 +10,37 @@ uses
   Trava_Task_Farm_Item,
   Add_Farm_Form;
 
+Type
+  TPanelControl = class
+    FGIDBuilding: Integer;  //gId постройки
+    BtAdd: TButton;         //кнопка увеличить на 1 лвл
+    BtDel: TButton;         //кнопка уменшить на 1 лвл
+    FPanel: TPanel;         //главная панель
+    FImage: TImage;         //картинка постройки
+    FImageList: TImageList; //контейнер для плюса и минуса на кнопках BtAdd и BtDel
+    FParentScrollBox: TScrollBox;
+  public
+    constructor Create(AParentScrolBox: TScrollBox; AImgList: TImageList);
+    property ID: Integer read FGIDBuilding write FGIDBuilding;
+    property AddBtn: TButton read BtAdd write BtAdd;
+    property DelBtn: TButton read BtDel write BtDel;
+    property Image: TImage read FImage write FImage;
+    property ImageList: TImageList read FImageList write FImageList;
+    property Panel: TPanel read FPanel write FPanel;
+  end;
+Type
+  TPanelGroup = class
+    FParentScrollBox: TScrollBox;
+    FPanelArray: array of TPanelControl;
+  private
+    procedure CalcXYPanel;
+  public
+    { Public declarations }
+    constructor Create(AParentScrolBox: TScrollBox; AcolGID: Integer; AImgList: TImageList);
+    //AcolGID - количество создаваемых панелек по ГИД постройкам ...
+    property ParentCrollBox: TScrollBox read FParentScrollBox write FParentScrollBox;
+  end;
+
 type
   TAccount_Form = class(TFrame)
     RzPageControl1: TRzPageControl;
@@ -38,6 +69,7 @@ type
     Level_ImageList: TImageList;
     Field_ImageList: TImageList;
     Center_ImageList: TImageList;
+    Btn_ImageList: TImageList;
     Panel2: TPanel;
     VillCenterImage: TImage;
     Panel1: TPanel;
@@ -52,6 +84,10 @@ type
     DeleteFarmItem: TButton;
     RzFarmListView: TRzListView;
     StartTaskFarm: TButton;
+    rzpnlScrolBox: TRzPanel;
+    rzpnListBuilding: TRzPanel;
+    rzspltr1: TRzSplitter;
+    scrlbxBildList: TScrollBox;
     procedure Building_PanelResize(Sender: TObject);
     procedure Building_GridDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
@@ -70,11 +106,13 @@ type
     procedure AddFarmItemClick(Sender: TObject);
     procedure VillCenterImageDblClick(Sender: TObject);
     procedure StartTaskFarmClick(Sender: TObject);
+    procedure scrlbxBildListResize(Sender: TObject);
   private
     // ColBuilding_Grid: integer;
     // RowBuilding_Grid: integer;
     BuildingIndex: Integer;
     FAccount_data: TAccount_data;
+    FBuildGroupPanel: TPanelGroup;
     procedure SetAccount_data(const Value: TAccount_data);
     { Private declarations }
     procedure View_Account(Account_data: TAccount_data);
@@ -82,6 +120,7 @@ type
     procedure DrawCurrentVill;
     procedure DrawVillField(IdVill: Integer);
     procedure DrawVillCenter(IdVill: Integer);
+    procedure DrawVillPanelContainer(IdVill: Integer);
     procedure DrawVill(IdVill: Integer);
     function GetBuildingIndexOnMouseXY(Start_index,Stop_index: integer;X, Y: Integer): Integer;
     procedure VillImageDblClick(Sender: TObject);
@@ -93,6 +132,86 @@ type
 implementation
 
 {$R *.dfm}
+
+{ TPanelControl }
+
+constructor TPanelControl.Create(AParentScrolBox: TScrollBox; AImgList: TImageList);
+begin
+  FParentScrollBox := AParentScrolBox;
+  FImageList := AImgList;
+  Panel := TPanel.Create(AParentScrolBox);
+  Panel.Parent := AParentScrolBox;
+  Panel.Top := -100;
+  Panel.Left := -100;
+  Panel.Height := 209 ;
+  Panel.Width := 135 ;
+  BtAdd := TButton.Create(Panel);
+  BtAdd.Left := 8;
+  BtAdd.Top := 160;
+  BtAdd.Width := 41;
+  BtAdd.Height := 41;
+  BtAdd.Images := FImageList;
+  BtAdd.ImageIndex := 0;
+  BtAdd.TabOrder := 0;
+  BtAdd.Parent := Panel;
+  BtDel := TButton.Create(Panel);
+  BtDel.Left := 88;
+  BtDel.Top := 160;
+  BtDel.Width := 41;
+  BtDel.Height := 41;
+  BtDel.Images := FImageList;
+  BtDel.ImageIndex := 1;
+  BtDel.TabOrder := 1;
+  BtDel.Parent := Panel;
+end;
+
+{ TPanelGroup }
+
+procedure TPanelGroup.CalcXYPanel;
+var
+  I, incH: Integer;
+begin
+  incH := 0;
+  for I := 0 to Length(FPanelArray) - 1 do
+  begin
+    if I = 0 then
+    begin
+      FPanelArray[I].Panel.Top := ParentCrollBox.Top + 10;
+      FPanelArray[I].Panel.Left := ParentCrollBox.Left + 10;
+    end
+    else
+    begin
+      if (FPanelArray[I-1].Panel.Left + 12 + FPanelArray[I-1].Panel.Width) >
+        (ParentCrollBox.Width -FPanelArray[I-1].Panel.Width - 12) then
+      begin
+        incH := FPanelArray[I-1].Panel.Height +12;
+        FPanelArray[I].Panel.Left := ParentCrollBox.Left + 10;
+        FPanelArray[I].Panel.Top := FPanelArray[I-1].Panel.Top + incH;
+      end
+      else
+      begin
+        FPanelArray[I].Panel.Top := FPanelArray[I-1].Panel.Top ;
+        FPanelArray[I].Panel.Left := FPanelArray[I-1].Panel.Left + 12 + FPanelArray[I].Panel.Width;
+      end;
+    end;
+  end;
+end;
+
+constructor TPanelGroup.Create(AParentScrolBox: TScrollBox; acolGID: Integer; AImgList: TImageList);
+var
+  I: Integer;
+begin
+  FParentScrollBox := AParentScrolBox;
+  SetLength(FPanelArray, acolGID);
+  //в иделае при создание обьекта передаем количество полей ... но так как мы
+  //заранем знаем скок их там (поменяться может если поменяют версию клиента)
+  //для большего удобства последовательность панелек будет фиксированой
+  for i := 0 to acolGID - 1 do
+  begin
+    FPanelArray[I] := TPanelControl.Create(FParentScrollBox, AImgList);
+  end;
+  CalcXYPanel;
+end;
 
 procedure TAccount_Form.Building_GridDrawCell(Sender: TObject;
   ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
@@ -251,6 +370,7 @@ procedure TAccount_Form.DrawVill(IdVill: Integer);
 begin
   DrawVillField(IdVill);
   DrawVillCenter(IdVill);
+  DrawVillPanelContainer(IdVill);
 end;
 
 procedure TAccount_Form.DrawVillCenter(IdVill: Integer);
@@ -341,6 +461,27 @@ begin
 end;
 
 
+procedure TAccount_Form.DrawVillPanelContainer(IdVill: Integer);
+var
+  VillForDraw: TVill;
+  img_fn: string;
+  field_img: TImage;
+begin
+  //scrlbxBildList.Hide;
+  if Account_data = nil then
+    exit;
+  VillForDraw := Account_data.MyAccount.Derevni.VillById(IdVill);
+//  if VillForDraw.Item_Building[40].lvl = 0 then
+//    img_fn := 'image/center/bg015.png'
+//  else
+//    img_fn := 'image/center/bg' + IntToStr(Account_data.MyAccount.Race)
+//      + '15.png';
+//
+//  field_img := TImage.Create(self);
+//  field_img.Picture.LoadFromFile(img_fn);
+  FBuildGroupPanel := TPanelGroup.Create(scrlbxBildList, 22, Btn_ImageList);
+end;
+
 function TAccount_Form.GetBuildingIndexOnMouseXY(Start_index,Stop_index: integer;X, Y: Integer): Integer;
 // Возвращает Индекс строения (для полей) над которым стоит курсор мышки
 var
@@ -365,6 +506,12 @@ begin
     end;
   end;
   BuildingIndex := Result;
+end;
+
+procedure TAccount_Form.scrlbxBildListResize(Sender: TObject);
+begin
+  if Assigned(FBuildGroupPanel) then
+    FBuildGroupPanel.CalcXYPanel;
 end;
 
 procedure TAccount_Form.VillCenterImageDblClick(Sender: TObject);
